@@ -44,6 +44,8 @@ techniques can also be applied [1]. Hence, the main challenges will not lie in t
 (MIDI) data, but in the decision of how to structure the MIDI files in order to feed it them into the
 model. For instance, my model of reference uses a vector representation for a fixed sequence and attribute length.
 
+I converted mp3-files to a midi respresentation with [Ableton](https://www.ableton.com/en/manual/converting-audio-to-midi/)
+
 ## 3) Approach
 
 ### 3.1 Model Design

@@ -2,6 +2,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
+.DS_store
 
 # C extensions
 *.so
@@ -161,4 +162,4 @@ cython_debug/
 #.idea/
 
 # Folders
-/dataset_generation/data/*
+/dataset/data/*

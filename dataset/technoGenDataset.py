@@ -23,15 +23,17 @@ class TechnoGenDataset(Dataset):
         transformation,
         sample_rate: int,
         k_beats: int,
+        device: str,
         train: bool = True,
         limit: int = None,
     ):
         super().__init__()
         self.limit = limit
         self.train = train
-        self.transformation = transformation
         self.sample_rate = sample_rate
         self.k_beats = k_beats
+        self.device = device
+        self.transformation = transformation.to(self.device)
 
         # get path of dataset
         self.data_path = (
@@ -88,6 +90,7 @@ class TechnoGenDataset(Dataset):
             signal = signal.reshape(1, signal.shape[0])  # (1, num_samples)
 
         # apply transformation of input
+        signal = signal.to(self.device)
         signal = self.transformation(signal)
         return signal
 

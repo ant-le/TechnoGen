@@ -27,24 +27,21 @@ illustrates. My goal will be to extend on this by using more recent model archit
 This project's end goal is to obtain a model that is able to capture these concepts in order to
 generate new pieces of art following similar structures.
 
-## 2) Data
+## 2) Dataset Creation
 
-As input data, the current plan is to use musical instrument digital interface
-([MDID](https://en.wikipedia.org/wiki/MIDI)) files as symbolic representations of
-music [3]. Without getting into too much detail, MIDI-files incorporate information
-about the structure of music over time (bar, beats, etc.) which are of relevance for techno music.
+I chose to opt for raw audio data. 
+In this case, data quality is much more important than quantity and genre specific information can be incorporated
 
-As there exist many collections of [open](https://www.partnersinrhyme.com/blog/)
-[source](https://colinraffel.com/projects/lmd/) MIDI recordings for each (sub) genre [2,3] and
-I have a collection of favourite tracks in MIDI format, I do not worry to much about the data
-collection process. However, the data was not collected yet, so more information on that will follow.
-Depending on the performance and need of training data,
-[data augmentation](https://music-classification.github.io/tutorial/part3_supervised/data-augmentation.html#:~:text=Data%20augmentations%20are%20a%20set,reduce%20the%20problem%20of%20overfitting.)
-techniques can also be applied [1]. Hence, the main challenges will not lie in the collection of
-(MIDI) data, but in the decision of how to structure the MIDI files in order to feed it them into the
-model. For instance, my model of reference uses a vector representation for a fixed sequence and attribute length.
+I constructed my own dataset of tracks which were free to download on soundcloud
 
-I converted mp3-files to a midi respresentation with [Ableton](https://www.ableton.com/en/manual/converting-audio-to-midi/)
+it consituted much time as there were many factors to be considered
+- how to split data (beats, time, not at all...)
+- how to transform data (raw, spec, mel_spec)
+- how to store for usage independent of model
+    - sequences should still be mapped to track
+    - easily readables
+
+
 
 ## 3) Approach
 

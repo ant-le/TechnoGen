@@ -1,0 +1,28 @@
+dataset:
+  offline_data_path: '/Users/anton/Documents/Music/Samoh/'
+  online_data_path: = 'none'
+  min_tempo: 135
+  sample_rate: 44_000
+  hop_size: 16
+  verbose: false
+
+training:
+  split: [.8, .1, .1]
+  shuffle: true
+  limit: None
+  batch_size: 64
+  epochs: 10
+  lr: 0.005
+  crit: 'l2'
+  reconstruction_loss_weight : 1
+  codebook_loss_weight : 1
+  commitment_loss_weight : 0.2
+  ckpt_name: 'best_vqvae_latent_2_codebook_5.pth'
+  seed: 111
+  output_train_dir: 'output'
+
+model:
+  channels: [1, 32, 64, 32, 4]
+  kernel_size: 3
+  n_embedding: 10  
+  dim_embedding: 2

@@ -4,6 +4,7 @@ import torchaudio
 import torch
 from torch import Tensor
 
+from tqdm import tqdm
 from librosa.beat import beat_track
 from pathlib import PosixPath, Path
 
@@ -42,13 +43,14 @@ def get_beat_locations(
         units="samples",
     )
     if verbose:
-        print("Estimated Tempo of current track is {}".format(tempo))
-    return tempo, beats.tolist()
+        tqdm.write("Estimated Tempo of current track is {}".format(tempo))
+    return tempo, beats
 
 
 def create_sequences(
     signal: Tensor,
     beat_locations: [int],
+    idx: int,
     k_beats: int,
     num_samples: int,
     verbose: bool = False,
@@ -74,7 +76,7 @@ def create_sequences(
             # apply padding to signal to get equal lenghs for all sequences
             # this is done here since we then don't need to loop over all track
             # sequences again later -> saves time and memory usage
-            sequence = apply_padding(sequence, num_samples, verbose=verbose)
+            sequence = apply_padding(sequence, num_samples, idx)
             padded_seq_list.append(sequence)
             old_beat_idx = beat_idx
 
@@ -91,12 +93,14 @@ def create_sequences(
     # Convert track back to Tensor (n_splits, num_samples)
     padded_track = torch.cat(padded_seq_list, dim=0)
     if verbose:
-        print("Track successfully secences with shape: {0}".format(padded_track.shape))
+        tqdm.write(
+            "Track successfully sequenced with shape: {0}".format(padded_track.shape)
+        )
 
     return padded_track
 
 
-def apply_padding(signal: Tensor, num_samples: int, verbose: bool == False) -> Tensor:
+def apply_padding(signal: Tensor, num_samples: int, idx: int) -> Tensor:
     """Functions that brings all signals into the same format (lenght). It
     cuts longer files after the maximum lenght defined in num_samples and
     applies padding to shorter files. Warinings are raised when cutting
@@ -106,8 +110,9 @@ def apply_padding(signal: Tensor, num_samples: int, verbose: bool == False) -> T
     if n_missing_samples < 0:
         # cut sample with warning
         signal = signal[:, :num_samples]
-        if verbose:
-            print("Warning: One Signal had too many samples and was cut!")
+        tqdm.write(
+            f"Warning: Track {idx+1} had {abs(n_missing_samples)} too many samples and was cut!"
+        )
 
     if n_missing_samples > 0:
         # rigth padding
@@ -116,34 +121,28 @@ def apply_padding(signal: Tensor, num_samples: int, verbose: bool == False) -> T
     return signal
 
 
-if __name__ == "__main__":
-    # Setup configuration for generating dataset
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--config", help="Path to dataset creation config file", required=True
-    )
-    args = parser.parse_args()
-    if not PosixPath(args.config).exists():
-        raise FileNotFoundError(f"Config file {args.config} does not exist.")
-    with open(args.config, "r") as stream:
-        try:
-            config = yaml.safe_load(stream)
-        except yaml.YAMLError as exc:
-            print(exc)
-
+def generate_dataset_file(config):
     required_keys = [
         "min_tempo",
         "sample_rate",
-        "split_after_beats",
-        "offline_data_path",
-        "online_data_path",
-        "num_samples",
+        "hop_size",
     ]
 
     if not all(key in config for key in required_keys):
         raise ValueError(
             f"Config file must contain properties {','.join(required_keys)}."
         )
+    print("Configuration file loaded successfully! The chosen specifications are:")
+
+    ######## Compute resulting sizes #######
+    config["num_samples"] = int(
+        config["sample_rate"] * config["hop_size"] * 1 / (config["min_tempo"] / 60)
+    )
+
+    for key in required_keys:
+        print("{}: {}".format(key, config[key]))
+
+    ######## generate data #######
 
     # Define further configurations and initiate feature dict for storing restults
     path = (
@@ -157,7 +156,14 @@ if __name__ == "__main__":
 
     features = {}
     # Loop over all songs
-    for idx, song_path in enumerate(song_paths):
+    for idx, song_path in enumerate(
+        tqdm(
+            (song_paths),
+            desc="Downloading and Processing tracks",
+            leave=True,
+            position=0,
+        )
+    ):
         # Loading and preparing track (audio file)
         audio_wave, sr = torchaudio.load(song_path)
         audio_wave = resample(audio_wave, from_sr=sr, to_sr=config["sample_rate"])
@@ -174,7 +180,8 @@ if __name__ == "__main__":
             audio_seq = create_sequences(
                 audio_wave,
                 beat_locations,
-                k_beats=config["split_after_beats"],
+                idx,
+                k_beats=config["hop_size"],
                 num_samples=config["num_samples"],
                 verbose=config["verbose"],
             )
@@ -185,9 +192,9 @@ if __name__ == "__main__":
     data_path.mkdir(exist_ok=True)
 
     with h5py.File(
-        data_path / f"techno_{config['sample_rate']}_{config['split_after_beats']}.h5",
+        data_path / f"techno_{config['sample_rate']}_{config['hop_size']}.h5",
         "w",
     ) as f:
-        grp = f.create_group("TechnoGen")
+        grp = f.create_group(f"{config['num_samples']}")
         for idx, track in features.items():
             grp.create_dataset(idx, data=track.numpy())

@@ -29,19 +29,20 @@ generate new pieces of art following similar structures.
 
 ## 2) Dataset Creation
 
-I chose to opt for raw audio data. 
+I chose to opt for raw audio data.
 In this case, data quality is much more important than quantity and genre specific information can be incorporated
 
 I constructed my own dataset of tracks which were free to download on soundcloud
 
 it consituted much time as there were many factors to be considered
+
 - how to split data (beats, time, not at all...)
 - how to transform data (raw, spec, mel_spec)
 - how to store for usage independent of model
-    - sequences should still be mapped to track
-    - easily readables
-
-
+  - sequences should still be mapped to track
+  - easily readables
+- number of channels
+- sample lenght
 
 ## 3) Approach
 

@@ -31,5 +31,5 @@ model:
   discard_vec_threshold: 1
   reconstruction_loss_weight : 1
   codebook_loss_weight : 1
-  commitment_loss_weight : 0.2
-  crit: 'l2'
+  commitment_loss_weight : 0.02
+  codebook: "model/vqvae/params/codebook.tar"

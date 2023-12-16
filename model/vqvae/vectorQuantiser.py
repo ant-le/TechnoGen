@@ -223,7 +223,6 @@ class VectorQuantizer(nn.Module):
             out = out.detach()
         return (
             out,
-            codebook_idxs,
             commit_loss,
             dict(fit=fit, x_norm=x_norm, **codebook_updates),
         )

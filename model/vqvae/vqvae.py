@@ -7,12 +7,31 @@ from model.vqvae.decoder import Decoder
 from model.vqvae.vectorQuantiser import VectorQuantizer
 
 
-def multispectral_loss(out, x, n_fft: int = 1024, hop_length: int = 256):
+def get_spectral_loss(
+    out, x, n_fft: int = 1024, hop_length: int = 256, win_length=1024, sr=44_100
+):
     """RMSE between input and output spectrograms"""
-    spec_x = torch.stft(x.float(), n_fft, hop_length, device=x.device)
-    spec_out = torch.stft(out.float(), n_fft, hop_length, device=x.device)
-    diff = spec_out - spec_x
-    return (diff.view(diff.shape[0], -1) ** 2).sqrt()
+    out, x = (
+        torch.mean(out.permute(0, 2, 1).float(), -1),
+        torch.mean(x.permute(0, 2, 1).float(), -1),
+    )
+    spec_x = torch.stft(
+        x,
+        n_fft,
+        hop_length=hop_length,
+        return_complex=True,
+        win_length=win_length,
+    )
+    spec_out = torch.stft(
+        out,
+        n_fft,
+        hop_length=hop_length,
+        return_complex=True,
+        win_length=win_length,
+    )
+    diff = torch.norm(spec_x, p=2, dim=-1) - torch.norm(spec_out, p=2, dim=-1)
+
+    return (diff.view(diff.shape[0], -1) ** 2).sum(dim=-1).sqrt()
 
 
 class VQVAE(nn.Module):
@@ -56,7 +75,9 @@ class VQVAE(nn.Module):
 
         print(
             "number of parameters: %.2f"
-            % int(sum(p.numel() for p in self.parameters()))
+            % int(
+                sum(p.numel() for p in self.parameters()) + codebook_dim * codebook_size
+            )
         )
 
     def forward(self, x):
@@ -67,17 +88,19 @@ class VQVAE(nn.Module):
         x_encoded = self.encoder(x)
 
         # Vector Quantization
-        x_reencoded, codebook_idxsm, commit_loss, metrics = self.quantizer(x_encoded)
+        x_reencoded, commit_loss, metrics = self.quantizer(x_encoded)
 
         # Decode
         out = self.decoder(x_reencoded)
 
         # Losses -> change to multispectral loss?
-        reconstruction_loss = torch.mean((out - x) ** 2)
-        spectral_loss = multispectral_loss(x, out)
+        reconstruction_loss = torch.mean(
+            (x.permute(0, 2, 1) - out.permute(0, 2, 1)) ** 2
+        )
+        spectral_loss = get_spectral_loss(out, x)
         loss = (
             reconstruction_loss
-            + self.spectral_loss_weight * spectral_loss(x, out)
+            + self.spectral_loss_weight * spectral_loss
             + self.commit_loss_weight * commit_loss
         )
 

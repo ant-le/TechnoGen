@@ -11,8 +11,9 @@ class TestModel(unittest.TestCase):
         audio_wave = torch.randn(25, 1, 44_100 * 8)
 
         model = VQVAE((1, 44_100 * 9))
-        output_wave = model.forward(audio_wave)
+        output_wave, loss, _ = model.forward(audio_wave)
         self.assertEqual(audio_wave.shape, output_wave.shape)
+        self.assertEqual(loss.shape, torch.Size([25]))
 
 
 if __name__ == "__main__":

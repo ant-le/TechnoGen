@@ -9,12 +9,14 @@ from librosa.beat import beat_track
 from pathlib import PosixPath, Path
 
 
-def resample(signal: Tensor, from_sr: int, to_sr: int) -> Tensor:
+def resample(signal: Tensor, from_sr: int, to_sr: int, debug=False) -> Tensor:
     """Resamples all audio files to a given sampling rate defined
     in the configuration file"""
     if from_sr != to_sr:
         resampler = torchaudio.transforms.Resample(from_sr, to_sr)
         signal = resampler(signal)
+        if debug:
+            tqdm.write(f"Track was resampled from original sr={from_sr}")
     return signal
 
 
@@ -122,11 +124,7 @@ def apply_padding(signal: Tensor, num_samples: int, idx: int) -> Tensor:
 
 
 def generate_dataset_file(config):
-    required_keys = [
-        "min_tempo",
-        "sample_rate",
-        "hop_size",
-    ]
+    required_keys = ["min_tempo", "sample_rate", "hop_size", "levels"]
 
     if not all(key in config for key in required_keys):
         raise ValueError(
@@ -135,10 +133,6 @@ def generate_dataset_file(config):
     print("Configuration file loaded successfully! The chosen specifications are:")
 
     ######## Compute resulting sizes #######
-    config["num_samples"] = int(
-        config["sample_rate"] * config["hop_size"] * 1 / (config["min_tempo"] / 60)
-    )
-
     for key in required_keys:
         print("{}: {}".format(key, config[key]))
 
@@ -166,7 +160,9 @@ def generate_dataset_file(config):
     ):
         # Loading and preparing track (audio file)
         audio_wave, sr = torchaudio.load(song_path)
-        audio_wave = resample(audio_wave, from_sr=sr, to_sr=config["sample_rate"])
+        audio_wave = resample(
+            audio_wave, from_sr=sr, to_sr=config["sample_rate"], debug=config["verbose"]
+        )
         audio_wave = mix_down(audio_wave)
 
         # Splitting track by beats
@@ -192,7 +188,7 @@ def generate_dataset_file(config):
     data_path.mkdir(exist_ok=True)
 
     with h5py.File(
-        data_path / f"techno_{config['sample_rate']}_{config['hop_size']}.h5",
+        data_path / f"techno_{config['num_samples']}.h5",
         "w",
     ) as f:
         grp = f.create_group(f"{config['num_samples']}")

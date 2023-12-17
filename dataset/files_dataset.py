@@ -4,7 +4,7 @@ from torch.utils.data import Dataset
 import torch
 import matplotlib.pyplot as plt
 
-from data_generator import generate_dataset_file
+from dataset.data_generator import generate_dataset_file
 from pathlib import PosixPath
 
 

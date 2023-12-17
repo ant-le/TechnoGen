@@ -7,6 +7,7 @@ from einops import rearrange, repeat
 
 
 def kmeans(x, codebook_size: int, num_iters: int = 10):
+    print("--- Initialising codebook with k-means: May take some time...")
     # code was adapted from and slightly modified from
     # https://github.com/facebookresearch/encodec/blob/main/encodec/quantization/core_vq.py
     # (BT, E)
@@ -65,6 +66,7 @@ class VectorQuantizer(nn.Module):
 
     def inititalise_codeboook(self, x):
         assert x.shape[1] == self.codebook_dim and len(x.shape) == 2
+        print("--- Initialising codebook with k-means: May take some time...")
 
         # find cluster means serving as initial vectors in codeboook
         codebook = kmeans(x, self.codebook_size)

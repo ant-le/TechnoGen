@@ -54,7 +54,7 @@ def make_model(config, device, optimizer: str = "adam", train: bool = True):
 
 def save_checkpoint(model, optimizer, epoch, benchmarks, config):
     # store data in hdf5 format in data directory
-    para_dir = str(PosixPath("model", "vqvae", "parameter"))
+    para_dir = PosixPath("model", "vqvae", "parameter")
     para_dir.mkdir(exist_ok=True)
 
     torch.save(

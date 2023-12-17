@@ -1,8 +1,9 @@
-import h5py, yaml, argparse
+import h5py
 
 import torchaudio
 import torch
 from torch import Tensor
+
 
 from tqdm import tqdm
 from librosa.beat import beat_track
@@ -145,7 +146,7 @@ def generate_dataset_file(config):
         else config["online_data_path"]
     )
 
-    song_paths = [str(song_file) for song_file in list(path.glob("*.wav"))]
+    song_paths = [str(song_file) for song_file in list(path.rglob("*.wav"))]
     assert len(song_paths) > 0
 
     features = {}

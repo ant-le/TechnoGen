@@ -1,35 +1,33 @@
 dataset:
-  offline_data_path: '/Users/anton/Documents/Music/Samoh/'
+  offline_data_path: '/Users/anton/Documents/Music/'
   online_data_path: = 'none'
   min_tempo: 135
   sample_rate: 44_100
   num_samples: 312_000
   hop_size: 16
   verbose: true
-  levels: 1
-
-training:
+  channels: 1
   split: [.8, .1, .1]
+  batch_size: 64
   shuffle: true
   limit: None
-  batch_size: 64
-  epochs: 10
+
+training:
+  name: 'base_model'
+  epochs: 100
+  optimizer: 'adam'
   lr: 0.005
-  ckpt_name: 'best_vqvae_latent_2_codebook_5.pth'
-  seed: 111
-  output_train_dir: 'output'
+  early_stop: 4 
 
 model:
-  channels: 1
-  n_downsample: 4
+  layers: 4
+  kernel_size: 2
+  stride: 2
+  width: 8
+  depth: 4
   codebook_dim: 32
   codebook_size: 16
-  depth: 4
-  width: 8
-  kenel_size: 2
-  stride: 2
   discard_vec_threshold: 1
-  reconstruction_loss_weight : 1
-  codebook_loss_weight : 1
-  commitment_loss_weight : 0.02
-  codebook: "model/vqvae/params/codebook.tar"
+  codebook_loss_weight : 0.5
+  spectral_loss_weight: 1
+  commit_loss_weight : 0.02

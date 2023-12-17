@@ -46,7 +46,6 @@ class VectorQuantizer(nn.Module):
         codebook_dim: int,
         codebook_size: int,
         codebook_loss_weight: float,
-        training: bool,
         discard_vec_threshold: int = 1,
     ):
         super(VectorQuantizer, self).__init__()
@@ -54,7 +53,6 @@ class VectorQuantizer(nn.Module):
         # codebook dimensions
         self.codebook_dim = codebook_dim  # CD_dim = E
         self.codebook_size = codebook_size  # CB_size
-        self.training = training
         self.loss_weight = codebook_loss_weight
         self.discard_vec_threshold = discard_vec_threshold
 

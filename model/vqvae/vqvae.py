@@ -1,6 +1,5 @@
 import torch.nn as nn
 import torch
-from torchaudio.transforms import InverseSpectrogram, Spectrogram
 
 from model.vqvae.encoder import Encoder
 from model.vqvae.decoder import Decoder
@@ -16,6 +15,11 @@ def get_spectral_loss(
     epsilon: int = 2e-3,
 ):
     """Specral Convergence between input and output spectrograms"""
+
+    # mps backend is not implemented for these operations
+    x = x.to("cpu") if torch.backends.mps.is_available() else x
+    out = out.to("cpu") if torch.backends.mps.is_available() else out
+
     out, x = (  # (B,C,T) -> (B,T,C)
         torch.mean(out.permute(0, 2, 1).float(), -1),
         torch.mean(x.permute(0, 2, 1).float(), -1),
@@ -27,6 +31,7 @@ def get_spectral_loss(
         return_complex=True,
         win_length=win_length,
     )
+
     spec_x = torch.norm(spec_x, p=2, dim=-1)
     gt_norm = (spec_x.view(x.shape[0], -1) ** 2).sum(dim=-1).sqrt()
 
@@ -37,6 +42,7 @@ def get_spectral_loss(
         return_complex=True,
         win_length=win_length,
     )
+
     spec_out = torch.norm(spec_out, p=2, dim=-1)
 
     residual = spec_x - spec_out
@@ -58,15 +64,14 @@ class VQVAE(nn.Module):
         depth: int = 8,
         codebook_dim: int = 32,
         codebook_size: int = 64,
-        train: bool = False,
         discard_vec_threshold: float = 1.0,
         codebook_loss_weight: float = 0.5,
         spectral_loss_weight: float = 1.0,
         commit_loss_weight: float = 1.0,
     ):
         super(VQVAE, self).__init__()
+        print("--- Initiate VQ VAE model...")
         self.channels, self.inut_size = input_shape
-        self.train = train
         self.spectral_loss_weight = spectral_loss_weight
         self.commit_loss_weight = commit_loss_weight
 
@@ -78,7 +83,6 @@ class VQVAE(nn.Module):
             codebook_dim,
             codebook_size,
             codebook_loss_weight,
-            train,
             discard_vec_threshold,
         )
 
@@ -87,7 +91,7 @@ class VQVAE(nn.Module):
         )
 
         print(
-            "number of parameters: %.2f"
+            "--- Model running with parameter size: %.2f"
             % int(
                 sum(p.numel() for p in self.parameters()) + codebook_dim * codebook_size
             )

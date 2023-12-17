@@ -163,6 +163,9 @@ cython_debug/
 
 # Folders
 /dataset/data/*
+/model/transformer/*
+/model/vqvae/parameter/*
+/wandb/*
 
 # VS Code
 .vscode/*

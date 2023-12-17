@@ -166,7 +166,6 @@ cython_debug/
 /model/transformer/*
 /model/vqvae/parameter/*
 /wandb/*
-/transformer/*
 
 # VS Code
 .vscode/*

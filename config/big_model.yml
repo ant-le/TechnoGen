@@ -8,27 +8,29 @@ dataset:
   verbose: true
   channels: 1
   split: [.8, .1, .1]
-  batch_size: 64
+  batch_size: 32
   shuffle: true
   limit: None
   beat_split: false
 
 training:
-  name: 'base_model'
+  name: 'big_model'
   epochs: 100
   optimizer: 'adam'
-  lr: 0.005
-  early_stop: 10
+  lr: 0.0001
+  early_stop: 15
+  clipping_fac: 2
 
 model:
-  layers: 4
+  layers: 2
   kernel_size: 2
   stride: 2
-  width: 8
+  width: 64
   depth: 4
-  codebook_dim: 32
-  codebook_size: 16
-  discard_vec_threshold: 1
-  codebook_loss_weight : 0.5
-  spectral_loss_weight: 1
-  commit_loss_weight : 0.02
+  codebook_dim: 64
+  codebook_size: 128
+  discard_vec_threshold: 1.0
+  codebook_loss_weight : 0.8
+  spectral_loss_weight: 1.0
+  commit_loss_weight : 1.0
+  init_random: false

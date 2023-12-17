@@ -3,6 +3,10 @@ from model.vqvae.vqvae import VQVAE
 from pathlib import PosixPath
 import torch
 
+import sys
+
+sys.path.append(".")
+
 
 def make_model(config, device, optimizer: str = "adam", train: bool = True):
     model_conf = config["model"]
@@ -21,6 +25,7 @@ def make_model(config, device, optimizer: str = "adam", train: bool = True):
         codebook_loss_weight=model_conf["codebook_loss_weight"],
         spectral_loss_weight=model_conf["spectral_loss_weight"],
         commit_loss_weight=model_conf["commit_loss_weight"],
+        init_random=model_conf["init_random"],
     )
     vqvae = vqvae.to(device)
 

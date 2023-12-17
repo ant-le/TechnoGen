@@ -48,6 +48,7 @@ class VectorQuantizer(nn.Module):
         codebook_size: int,
         codebook_loss_weight: float,
         discard_vec_threshold: int = 1,
+        init_random: bool = True,
     ):
         super(VectorQuantizer, self).__init__()
 
@@ -56,6 +57,7 @@ class VectorQuantizer(nn.Module):
         self.codebook_size = codebook_size  # CB_size
         self.loss_weight = codebook_loss_weight
         self.discard_vec_threshold = discard_vec_threshold
+        self.init_random = init_random
 
         # instantiate codebook instance in buffer -> no model param
         codebook = torch.zeros(codebook_size, codebook_dim)
@@ -66,10 +68,17 @@ class VectorQuantizer(nn.Module):
 
     def inititalise_codeboook(self, x):
         assert x.shape[1] == self.codebook_dim and len(x.shape) == 2
-        print("--- Initialising codebook with k-means: May take some time...")
+        if not self.init_random:
+            try:
+                # find cluster means serving as initial vectors in codeboook
+                codebook = kmeans(x, self.codebook_size)
+            except RuntimeError:
+                print("--- Memory Size too small: Initialsing randomly instead!")
+                codebook = x[torch.randperm(x.shape[0])][: self.codebook_size]
+        else:
+            codebook = x[torch.randperm(x.shape[0])][: self.codebook_size]
 
         # find cluster means serving as initial vectors in codeboook
-        codebook = kmeans(x, self.codebook_size)
 
         # Update codebook
         self.codebook = codebook

@@ -57,17 +57,18 @@ class VQVAE(nn.Module):
     def __init__(
         self,
         input_shape=(1, 44_100 * 8),
-        layers: int = 5,
+        layers: int = 4,
         kernel_size: int = 2,
         stride: int = 2,
-        width: int = 16,
-        depth: int = 8,
-        codebook_dim: int = 32,
-        codebook_size: int = 64,
+        width: int = 128,
+        depth: int = 16,
+        codebook_dim: int = 64,
+        codebook_size: int = 128,
         discard_vec_threshold: float = 1.0,
-        codebook_loss_weight: float = 0.5,
+        codebook_loss_weight: float = 0.8,
         spectral_loss_weight: float = 1.0,
         commit_loss_weight: float = 1.0,
+        init_random: bool = True,
     ):
         super(VQVAE, self).__init__()
         print("--- Initiate VQ VAE model...")
@@ -84,6 +85,7 @@ class VQVAE(nn.Module):
             codebook_size,
             codebook_loss_weight,
             discard_vec_threshold,
+            init_random,
         )
 
         self.decoder = Decoder(

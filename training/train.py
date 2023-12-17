@@ -1,4 +1,6 @@
-import argparse, yaml, wandb, sys
+import argparse, yaml, wandb, sys, os
+
+os.environ["WANDB_SILENT"] = "true"
 
 sys.path.append(".")
 from tqdm import tqdm
@@ -41,7 +43,7 @@ def train(model, data_processor, optimizer, device):
     # calculate average metrics for epochs
     model.eval()
     epoch_loss = sum(losses) / len(losses)
-    metrics = {key: sum(values) for key, values in metrics.items()}
+    metrics = {key: sum(values) / len(values) for key, values in metrics.items()}
 
     torch.cuda.empty_cache()
 
@@ -92,7 +94,10 @@ def run_epochs(config, save_checkpoints: bool = True):
 
     # Setup Logger
     wandb.login()
-    wandb.init(config=config["training"])
+    wandb.init(
+        config=config["training"],
+        project="TechnoGen-training",
+    )
     wandb.watch(model)
 
     # Define training loop
@@ -121,6 +126,11 @@ def run_epochs(config, save_checkpoints: bool = True):
                 break
 
         # Step for learning rate decay
+        torch.nn.utils.clip_grad_norm_(
+            filter(lambda p: p.requires_grad, model.parameters()),
+            max_norm=config["training"]["clipping_fac"],
+        )
+
         scheduler.step()
 
         # save model params every 5 epochs
@@ -147,7 +157,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--config",
-        default="config/basic_setup.yml",
+        default="config/baseline.yml",
         help="Path to config file",
         type=str,
     )

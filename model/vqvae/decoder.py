@@ -19,7 +19,7 @@ class Decoder(nn.Module):
         kernel, padding = stride * kenel_size, stride // kenel_size
 
         blocks = []
-        block = nn.Conv1d(codebook_dim, width, 3, 1, 1)
+        block = nn.ConvTranspose1d(codebook_dim, width, 3, 1, 1)
         blocks.append(block)
 
         for i in range(layers):

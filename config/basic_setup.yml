@@ -3,7 +3,7 @@ dataset:
   online_data_path: = 'none'
   min_tempo: 135
   sample_rate: 44_100
-  num_samples: 312_000
+  num_samples: 352_800
   hop_size: 16
   verbose: true
   channels: 1
@@ -11,13 +11,14 @@ dataset:
   batch_size: 64
   shuffle: true
   limit: None
+  beat_split: false
 
 training:
   name: 'base_model'
   epochs: 100
   optimizer: 'adam'
   lr: 0.005
-  early_stop: 4 
+  early_stop: 10
 
 model:
   layers: 4

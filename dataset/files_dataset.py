@@ -2,8 +2,9 @@ import h5py
 import torch
 from torch.utils.data import Dataset
 import torch
+import matplotlib.pyplot as plt
 
-from dataset.data_generator import generate_dataset_file
+from data_generator import generate_dataset_file
 from pathlib import PosixPath
 
 
@@ -63,6 +64,5 @@ class TechnoGenDataset(Dataset):
         with h5py.File(self.data_path, "r") as f:
             audio_wave = f[self.num_samples][key][()]
             signal = torch.from_numpy(audio_wave[lookup_idx, :])
-            signal = signal.reshape(1, signal.shape[0])  # (1, num_samples)
-
+            # signal = signal.reshape(1, signal.shape[0])  # (1, num_samples)
         return signal

@@ -53,9 +53,10 @@ def make_model(config, device, optimizer: str = "adam", train: bool = True):
 
 
 def save_checkpoint(model, optimizer, epoch, benchmarks, config):
-    path = str(
-        PosixPath("model", "vqvae", "parameter", f"{config['training']['name']}.pth")
-    )
+    # store data in hdf5 format in data directory
+    para_dir = str(PosixPath("model", "vqvae", "parameter"))
+    para_dir.mkdir(exist_ok=True)
+
     torch.save(
         {
             "model_state_dict": model.state_dict(),
@@ -63,7 +64,7 @@ def save_checkpoint(model, optimizer, epoch, benchmarks, config):
             "epoch": epoch,
             "benchmarks": benchmarks,
         },
-        path,
+        str(para_dir / f"{config['training']['name']}.pth"),
     )
 
 

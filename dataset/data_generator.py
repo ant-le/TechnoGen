@@ -50,7 +50,21 @@ def get_beat_locations(
     return tempo, beats
 
 
-def create_sequences(
+def split_by_time(signal: Tensor, k_seconds: int, same_rate: int):
+    num_samples = k_seconds * same_rate
+
+    splits = torch.split(signal, num_samples, dim=1)
+
+    # drop ending of the song due to different size
+    splits = torch.stack(list(splits[:-1]), dim=0)
+
+    # (split, 1, num_samples) -> (split, num_samples)
+    splits.reshape(splits.shape[0], splits.shape[2])
+
+    return splits
+
+
+def split_by_beats(
     signal: Tensor,
     beat_locations: [int],
     idx: int,
@@ -125,7 +139,7 @@ def apply_padding(signal: Tensor, num_samples: int, idx: int) -> Tensor:
 
 
 def generate_dataset_file(config):
-    required_keys = ["min_tempo", "sample_rate", "hop_size", "levels"]
+    required_keys = ["min_tempo", "sample_rate", "hop_size", "channels"]
 
     if not all(key in config for key in required_keys):
         raise ValueError(
@@ -166,15 +180,13 @@ def generate_dataset_file(config):
         )
         audio_wave = mix_down(audio_wave)
 
-        # Splitting track by beats
-        tempo, beat_locations = get_beat_locations(
-            audio_wave, sr=config["sample_rate"], verbose=config["verbose"]
-        )
-
-        # ignore slow tracks (slice sizes would be too long)
-        if tempo >= config["min_tempo"]:
+        if config["beat_split"]:
+            # Splitting track by beats
+            _, beat_locations = get_beat_locations(
+                audio_wave, sr=config["sample_rate"], verbose=config["verbose"]
+            )
             # sequence audio file
-            audio_seq = create_sequences(
+            audio_seq = split_by_beats(
                 audio_wave,
                 beat_locations,
                 idx,
@@ -182,6 +194,14 @@ def generate_dataset_file(config):
                 num_samples=config["num_samples"],
                 verbose=config["verbose"],
             )
+
+        else:
+            audio_seq = split_by_time(
+                audio_wave,
+                k_seconds=config["hop_size"] // 2,
+                same_rate=config["sample_rate"],
+            )
+
             features[str(idx)] = audio_seq
 
     # store data in hdf5 format in data directory

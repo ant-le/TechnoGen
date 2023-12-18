@@ -1,5 +1,5 @@
-from torch.utils.data import Dataset, DataLoader
 import torch
+from torch.utils.data import Dataset, DataLoader
 from dataset.files_dataset import TechnoGenDataset
 
 

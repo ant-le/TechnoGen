@@ -1,7 +1,6 @@
 dataset:
   offline_data_path: '/Users/anton/Documents/Music/'
   online_data_path: = 'none'
-  min_tempo: 135
   sample_rate: 44_100
   num_samples: 352_800
   hop_size: 8

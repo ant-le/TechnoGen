@@ -27,7 +27,6 @@ smmap==5.0.1
 sympy==1.12
 torch==2.1.2
 torchaudio==2.1.2
-torchvision==0.16.2
 tqdm==4.66.1
 typing_extensions==4.9.0
 urllib3==2.1.0

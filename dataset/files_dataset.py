@@ -1,8 +1,7 @@
-import h5py
-from pathlib import PosixPath
-
-import torch
+import h5py, torch
 from torch.utils.data import Dataset
+
+from pathlib import PosixPath
 
 from dataset.data_generator import generate_dataset_file
 

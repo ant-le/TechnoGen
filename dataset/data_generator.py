@@ -1,7 +1,4 @@
-import h5py
-
-import torchaudio
-import torch
+import h5py, torchaudio, torch
 from torch import Tensor
 
 from tqdm import tqdm

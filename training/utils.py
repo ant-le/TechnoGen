@@ -5,6 +5,8 @@ import torch
 
 import sys
 
+import wandb
+
 sys.path.append(".")
 
 
@@ -33,54 +35,45 @@ def make_model(config, device, optimizer: str = "adam", train: bool = True):
 
     optimizer = get_optimizer(vqvae, training_conf)
     if path.exists():
-        vqvae, optimizer, epoch, benchmarks = load_checkpoint(vqvae, optimizer, path)
+        vqvae, optimizer, epoch = load_checkpoint(vqvae, optimizer, path)
         print(
             f"--- Model parameters loaded successfully -> Continue with epoch {epoch}"
         )
     else:
         epoch = 0
-        benchmarks = {  # TODO: modify to dynamically write dict
-            "train": {
-                "loss": [],
-                "recons_loss": [],
-                "spectral_loss": [],
-                "commit_loss": [],
-            },
-            "valid": {"loss": []},
-            "test": {"loss": []},
-        }
         print(f"--- New model parameters -> Start with new model from epoch {epoch}")
     if not train:
         vqvae.eval()
         for params in vqvae.parameters():
             params.requires_grad = False
-    return vqvae, optimizer, epoch, benchmarks
+    return vqvae, optimizer, epoch
 
 
-def save_checkpoint(model, optimizer, epoch, benchmarks, config):
+def save_checkpoint(model, optimizer, epoch, config):
     # store data in hdf5 format in data directory
-    para_dir = PosixPath("model", "vqvae", "parameter")
-    para_dir.mkdir(exist_ok=True)
+    para_dir = PosixPath(
+        "model", "vqvae", "parameter", f"{config['training']['name']}.pth"
+    )
+    para_dir.parent.mkdir(exist_ok=True)
 
     torch.save(
         {
             "model_state_dict": model.state_dict(),
             "optimizer_state_dict": optimizer.state_dict(),
             "epoch": epoch,
-            "benchmarks": benchmarks,
         },
-        str(para_dir / f"{config['training']['name']}.pth"),
+        str(para_dir),
     )
+    wandb.save(str(para_dir))
 
 
-def load_checkpoint(model, optimizer, load_path):
-    checkpoint = torch.load(str(load_path))
+def load_checkpoint(model, optimizer, para_dir):
+    checkpoint = torch.load(para_dir)
     model.load_state_dict(checkpoint["model_state_dict"])
     optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
-    benchmarks = checkpoint["benchmarks"]
     epoch = checkpoint["epoch"]
 
-    return model, optimizer, epoch, benchmarks
+    return model, optimizer, epoch
 
 
 def get_optimizer(model, config):

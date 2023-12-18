@@ -1,10 +1,10 @@
 import h5py
+from pathlib import PosixPath
+
 import torch
 from torch.utils.data import Dataset
-import torch
 
 from dataset.data_generator import generate_dataset_file
-from pathlib import PosixPath
 
 
 # maybe move to handle all data generation

@@ -4,9 +4,7 @@ import torchaudio
 import torch
 from torch import Tensor
 
-
 from tqdm import tqdm
-from librosa.beat import beat_track
 from pathlib import PosixPath, Path
 
 
@@ -29,27 +27,6 @@ def mix_down(signal: Tensor) -> Tensor:
     return signal
 
 
-def get_beat_locations(
-    signal: Tensor, sr: int, verbose: bool = False
-) -> (float, [int]):
-    """Calls librosas beat tracking estimator to find beat locattions
-    for a given signal. Returns estimated beats per minute (bpm) and
-    a list with sample locations for beats.
-    """
-
-    tempo, beats = beat_track(
-        y=signal.numpy().reshape(
-            -1,
-        ),
-        sr=sr,
-        start_bpm=140.0,
-        units="samples",
-    )
-    if verbose:
-        tqdm.write("Estimated Tempo of current track is {}".format(tempo))
-    return tempo, beats
-
-
 def split_by_time(signal: Tensor, k_seconds: int, same_rate: int):
     num_samples = k_seconds * same_rate
 
@@ -62,59 +39,6 @@ def split_by_time(signal: Tensor, k_seconds: int, same_rate: int):
     splits.reshape(splits.shape[0], splits.shape[2])
 
     return splits
-
-
-def split_by_beats(
-    signal: Tensor,
-    beat_locations: [int],
-    idx: int,
-    k_beats: int,
-    num_samples: int,
-    verbose: bool = False,
-) -> Tensor:
-    """Splits a given audio signal (song) every k_beats beats. The
-    frames before the first beat and after the last beat are hereby
-    ommitted due to their large variation in signal lenght.
-    """
-
-    # TODO: move it to seperate test file where I don't need to pad
-    seq_list = []
-    padded_seq_list = []
-
-    old_beat_idx = 0
-    for beat_idx in range(1, len(beat_locations)):  # iterate over found beats
-        if beat_idx % k_beats == 0:
-            # find corresponding interval in signal
-            sequence = signal[
-                :, beat_locations[old_beat_idx] : beat_locations[beat_idx]
-            ]
-            seq_list.append(sequence)
-
-            # apply padding to signal to get equal lenghs for all sequences
-            # this is done here since we then don't need to loop over all track
-            # sequences again later -> saves time and memory usage
-            sequence = apply_padding(sequence, num_samples, idx)
-            padded_seq_list.append(sequence)
-            old_beat_idx = beat_idx
-
-    # igonore all signals ...
-    start = signal[:, : beat_locations[0]]  # ... before first beat
-    ending = signal[:, beat_locations[old_beat_idx] :]  # ... after last beat
-
-    # testing
-    expected_count = (
-        start.shape[1] + sum(map(lambda x: x.shape[1], seq_list)) + ending.shape[1]
-    )
-    assert expected_count == signal.shape[1]
-
-    # Convert track back to Tensor (n_splits, num_samples)
-    padded_track = torch.cat(padded_seq_list, dim=0)
-    if verbose:
-        tqdm.write(
-            "Track successfully sequenced with shape: {0}".format(padded_track.shape)
-        )
-
-    return padded_track
 
 
 def apply_padding(signal: Tensor, num_samples: int, idx: int) -> Tensor:
@@ -180,29 +104,13 @@ def generate_dataset_file(config):
         )
         audio_wave = mix_down(audio_wave)
 
-        if config["beat_split"]:
-            # Splitting track by beats
-            _, beat_locations = get_beat_locations(
-                audio_wave, sr=config["sample_rate"], verbose=config["verbose"]
-            )
-            # sequence audio file
-            audio_seq = split_by_beats(
-                audio_wave,
-                beat_locations,
-                idx,
-                k_beats=config["hop_size"],
-                num_samples=config["num_samples"],
-                verbose=config["verbose"],
-            )
+        audio_seq = split_by_time(
+            audio_wave,
+            k_seconds=config["hop_size"],
+            same_rate=config["sample_rate"],
+        )
 
-        else:
-            audio_seq = split_by_time(
-                audio_wave,
-                k_seconds=config["hop_size"] // 2,
-                same_rate=config["sample_rate"],
-            )
-
-            features[str(idx)] = audio_seq
+        features[str(idx)] = audio_seq
 
     # store data in hdf5 format in data directory
     data_path = Path(__file__).parent / "data"

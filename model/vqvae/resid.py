@@ -1,7 +1,5 @@
 import torch.nn as nn
 
-# TODO: add dialation
-
 
 class ResBlock1D(nn.Module):
     def __init__(self, width, depth, res_scale: int = 1, dilation=1):

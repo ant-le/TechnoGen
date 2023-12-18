@@ -4,17 +4,16 @@ dataset:
   min_tempo: 135
   sample_rate: 44_100
   num_samples: 352_800
-  hop_size: 16
+  hop_size: 8
   verbose: true
   channels: 1
   split: [.8, .1, .1]
-  batch_size: 32
+  batch_size: 16
   shuffle: true
   limit: None
-  beat_split: false
 
 training:
-  name: 'big_model'
+  name: 'big'
   epochs: 100
   optimizer: 'adam'
   lr: 0.0001

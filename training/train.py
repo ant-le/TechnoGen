@@ -1,12 +1,9 @@
-import argparse, yaml, wandb, sys, os
-
-os.environ["WANDB_SILENT"] = "true"
+import argparse, yaml, wandb, sys, torch
 
 sys.path.append(".")
 from tqdm import tqdm
 from pathlib import PosixPath
 
-import torch
 from torch.optim.lr_scheduler import MultiStepLR
 
 from dataset.data_processor import DataProcessor
@@ -67,7 +64,8 @@ def evaluate(model, data_processor, device):
 
 
 def run_epochs(config, save_checkpoints: bool = True):
-    best_loss = epochs_without_improve = 0
+    epochs_without_improve = 0
+    best_loss = 1e6
 
     # Loading data
     data_processor = DataProcessor(config["dataset"])
@@ -82,7 +80,17 @@ def run_epochs(config, save_checkpoints: bool = True):
     )
     print("--- Model runs on device: {}".format(device.type))
 
-    model, optimizer, epoch, benchmarks = make_model(config, device=device)
+    # Setup Logger
+    wandb.login()
+    wandb.init(
+        config=config["training"],
+        project="TechnoGen",
+        id=config["training"]["name"],
+        resume="allow",
+    )
+
+    model, optimizer, epoch = make_model(config, device=device)
+    wandb.watch(model, log="all", log_freq=200)
 
     # setting up adaptive learning rate
     scheduler = MultiStepLR(
@@ -92,24 +100,36 @@ def run_epochs(config, save_checkpoints: bool = True):
         last_epoch=epoch if epoch > 0 else -1,
     )
 
-    # Setup Logger
-    wandb.login()
-    wandb.init(
-        config=config["training"],
-        project="TechnoGen-training",
-    )
-    wandb.watch(model)
-
     # Define training loop
     for epoch in tqdm(
-        range(epoch, config["training"]["epochs"]),
+        range(config["training"]["epochs"]),
         position=0,
         leave=True,
         desc="Running Epochs",
+        initial=epoch,
     ):
         # train and validate model
         loss, metrics = train(model, data_processor.train_loader, optimizer, device)
         valid_loss = evaluate(model, data_processor.valid_loader, device)
+
+        # Step for learning rate decay
+        torch.nn.utils.clip_grad_norm_(
+            filter(lambda p: p.requires_grad, model.parameters()),
+            max_norm=config["training"]["clipping_fac"],
+        )
+
+        scheduler.step()
+
+        # save model params every 5 epochs
+        if epoch % 5 == 0 and save_checkpoints:
+            save_checkpoint(model, optimizer, epoch, config)
+
+        # Loggging
+        metrics.update(dict(train_loss=loss, valid_loss=valid_loss))
+        wandb.log(metrics, step=epoch)
+        tqdm.write(
+            f"--- Epoch finished with Training Loss: {loss} and valid Loss: {valid_loss}"
+        )
 
         # Early stopping
         max_no_improvement = config["training"]["early_stop"]
@@ -125,28 +145,9 @@ def run_epochs(config, save_checkpoints: bool = True):
                 )
                 break
 
-        # Step for learning rate decay
-        torch.nn.utils.clip_grad_norm_(
-            filter(lambda p: p.requires_grad, model.parameters()),
-            max_norm=config["training"]["clipping_fac"],
-        )
-
-        scheduler.step()
-
-        # save model params every 5 epochs
-        if epoch % 5 == 0 and save_checkpoints:
-            save_checkpoint(model, optimizer, epoch, benchmarks, config)
-
-        # Loggging
-        metrics.update(dict(train_loss=loss, valid_loss=valid_loss))
-        wandb.log(metrics)
-        tqdm.write(
-            f"--- Epoch finished with Training Loss: {loss} and valid Loss: {valid_loss}"
-        )
-
     # logging test accuracy
     test_loss = evaluate(model, data_processor.test_loader, device)
-    wandb.log({"Test Loss": test_loss})
+    wandb.log({"Test Loss": test_loss}, step=epoch)
     tqdm.write(f"--- Training finished with Test Loss: {test_loss}")
 
 

@@ -4,33 +4,32 @@ dataset:
   min_tempo: 135
   sample_rate: 44_100
   num_samples: 352_800
-  hop_size: 16
+  hop_size: 8
   verbose: true
   channels: 1
   split: [.8, .1, .1]
   batch_size: 16
   shuffle: true
   limit: None
-  beat_split: false
 
 training:
-  name: 'base_model'
+  name: 'small'
   epochs: 100
   optimizer: 'adam'
   lr: 0.0001
-  early_stop: 5
+  early_stop: 10
   clipping_fac: 2
 
 model:
   layers: 2
   kernel_size: 2
   stride: 2
-  width: 64
+  width: 32
   depth: 4
-  codebook_dim: 64
-  codebook_size: 32
+  codebook_dim: 32
+  codebook_size: 256
   discard_vec_threshold: 1.0
   codebook_loss_weight : 0.8
   spectral_loss_weight: 1.0
-  commit_loss_weight : 1.0
+  commit_loss_weight : 0.8
   init_random: true

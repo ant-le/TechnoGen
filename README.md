@@ -133,39 +133,3 @@ ECTS, which is however a circumstance I am willing to take.
 [2] Défossez, A., Copet, J., Synnaeve, G., & Adi, Y. (2022). High fidelity neural audio compression. arXiv preprint arXiv:2210.13438.
 
 [3] Ding, S., & Gutierrez-Osuna, R. (2019, September). Group Latent Embedding for Vector Quantized Variational Autoencoder in Non-Parallel Voice Conversion. In Interspeech (pp. 724-728).
-
-
-
-```
-
-├── 📂 config
-├── 📂 docs
-│
-├──📂 inference
-│
-├──📂 dataset
-│
-├──📂 model
-│
-├──📂 tests
-│
-├──📂 training
-
-├── 📂 existing
-│   ├── 📂 musicxml
-│   │   ├── Mozart
-│   │   │   ...
-│   │   │   └── 📜 Very Famous Composition.mxl
-│   │   ...
-│   │   └── 📜 Mr. Brightside – The Killers.mxl
-│   ├── 📂 render_png
-│   └── 📂 render_svg
-├── 📂 generated
-│   ├── 📂 musicxml
-│   ├── 📂 render_png
-│   └── 📂 render_svg
-└── 📂 pairs
-    ├── 📂 clean
-    ├── 📜 clean_dirty_index.csv
-    └── 📂 dirty
-```

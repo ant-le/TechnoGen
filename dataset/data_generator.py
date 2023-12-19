@@ -83,6 +83,7 @@ def generate_dataset_file(config):
 
     # get paths of all audio files in directory
     song_paths = [str(song_file) for song_file in list(path.rglob("*.wav"))]
+    song_path.append([str(song_file) for song_file in list(path.rglob("*.mp3"))])
     assert len(song_paths) > 0
 
     # Process and store each song

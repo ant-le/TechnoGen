@@ -1,6 +1,6 @@
 import torch
 from torch.utils.data import Dataset, DataLoader
-from dataset.file_processor import TechnoGenDataset
+from dataset.data_handler import TechnoGenDataset
 
 
 class HelperDataset(Dataset):
@@ -41,30 +41,24 @@ class DataProcessor:
         self.test_dataset = HelperDataset(self.dataset, valid_len, len(self.dataset))
 
     def _create_data_loaders(self, config):
-        # Loader to load mini-batches
-        collate_fn = lambda batch: torch.stack([torch.from_numpy(b) for b in batch], 0)
-
         print("--- Creating Data Loader")
         self.train_loader = DataLoader(
             self.train_dataset,
             batch_size=config["batch_size"],
             shuffle=config["shuffle"],
-            num_workers=1,
-            # collate_fn=collate_fn,
+            num_workers=8,
         )
         self.valid_loader = DataLoader(
             self.test_dataset,
             batch_size=config["batch_size"],
             shuffle=config["shuffle"],
-            num_workers=1,
-            # collate_fn=collate_fn,
+            num_workers=8,
         )
         self.test_loader = DataLoader(
             self.test_dataset,
             batch_size=config["batch_size"],
             shuffle=config["shuffle"],
-            num_workers=1,
-            # collate_fn=collate_fn,
+            num_workers=8,
         )
 
     def _print_stats(self):

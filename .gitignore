@@ -169,3 +169,4 @@ cython_debug/
 
 # VS Code
 .vscode/*
+model_inference*

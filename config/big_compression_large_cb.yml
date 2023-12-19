@@ -12,51 +12,12 @@ dataset:
   limit: None
 
 training:
-  name: 'micro_scaledv5'
+  name: 'big_compression_large_cb'
   epochs: 100
   optimizer: 'adam'
   lr: 0.0001
   early_stop: 10
   clipping_fac: 2
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 model:
   layers: 4

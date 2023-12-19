@@ -4,7 +4,7 @@ import torch
 
 from model.vqvae.encoder import Encoder
 from model.vqvae.decoder import Decoder
-from model.vqvae.vectorQuantiser import VectorQuantizer
+from model.vqvae.vectorQuantizer import VectorQuantizer
 
 
 def get_spectral_loss(
@@ -93,7 +93,7 @@ class VQVAE(nn.Module):
         self.spectral_loss_weight = spectral_loss_weight
         self.commit_loss_weight = commit_loss_weight
         self.codebook_dim = codebook_dim
-        self.compression_dim = self.input_size / (layers + 1)
+        self.compression_dim = self.input_size // (layers + 1)
 
         self.encoder = Encoder(
             self.channels, codebook_dim, layers, kernel_size, stride, width, depth
@@ -160,11 +160,9 @@ class VQVAE(nn.Module):
         return out, loss, metrics
 
     def generate(self):
-        # method using only the decoder part to generate audio
-        # how do I get T?
         with torch.no_grad():
             generated_vectors = self.quantizer.get_random_codebook_vetors(
-                int(self.compression_dim)
+                self.compression_dim
             )
             out = self.decoder(generated_vectors)
         return out

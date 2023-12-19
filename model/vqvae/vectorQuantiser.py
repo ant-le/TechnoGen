@@ -49,6 +49,7 @@ class VectorQuantizer(nn.Module):
         codebook_loss_weight: float,
         discard_vec_threshold: int = 1,
         init_random: bool = True,
+        embedding: bool = True,
     ):
         super(VectorQuantizer, self).__init__()
 
@@ -84,6 +85,16 @@ class VectorQuantizer(nn.Module):
         self.codebook = codebook
         self.codebook_avg = codebook.clone()
 
+    def get_random_codebook_vetors(self, compress_lv):
+        with torch.no_grad():
+            # creae (T, 1) indices in {0, 1, 2, ..., codebook_size}
+            indexes = torch.randint(0, self.codebook_size, (compress_lv, 1)).to(
+                device=self.codebook.device
+            )
+            generated_vectors = F.embedding(torch.flatten(indexes), self.codebook)
+            out = self.postprocess(generated_vectors, (1, compress_lv))
+        return out.clone().detach()
+
     def update_codebook(self, x: torch.Tensor, codebook_idxs: []):
         # get params for better readability
         weight = self.loss_weight
@@ -117,7 +128,7 @@ class VectorQuantizer(nn.Module):
             # check if usage of certain codebook vectors is beyond threshold
             # in last iteration (false -> 0. & true -> 1.)
             usage = (self.vector_usage.view(cb_size, 1) >= threshold).float()
-            assert x.shape[0] >= cb_size  # BT >= number of codebook vectors
+
             random_shift = x[torch.randperm(x.shape[0])][:cb_size]
 
             # update vectors according and change unimportant vecotors randomly
@@ -174,6 +185,7 @@ class VectorQuantizer(nn.Module):
 
     def forward(self, x):
         B, E, T = x.shape
+        assert B * T >= self.codebook_size
         # preprocess to get right shape
         # (B,E,T) -> (BT, E)
         x, x_norm = self.preprocess(x)
@@ -215,10 +227,8 @@ class VectorQuantizer(nn.Module):
         # codebook vectors
         commit_loss = torch.norm(out.detach() - x) ** 2 / np.prod(x.shape)
 
-        # Feed foward the vectors -> and make sure that
-        # encoder weights are not changed
-        out = x + (out - x)
-        out = out.detach()
+        # Feed foward the vectors -> stop gradients flow in quantiser!
+        out = x + (out - x).detach()
 
         # post data back to right shape
         # (BT, E) -> (B,E,T)
@@ -228,8 +238,6 @@ class VectorQuantizer(nn.Module):
         # (E, CB_size) -> (B, T)
         codebook_idxs = codebook_idxs.view(B, T)
 
-        if not self.training:
-            out = out.detach()
         return (
             out,
             commit_loss,

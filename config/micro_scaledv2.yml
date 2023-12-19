@@ -7,25 +7,25 @@ dataset:
   verbose: true
   channels: 1
   split: [.8, .1, .1]
-  batch_size: 16
+  batch_size: 8
   shuffle: true
   limit: None
 
 training:
-  name: 'small'
+  name: 'micro_scaledv2'
   epochs: 100
   optimizer: 'adam'
-  lr: 0.0001
+  lr: 0.001
   early_stop: 10
   clipping_fac: 2
 
 model:
-  layers: 2
+  layers: 4
   kernel_size: 2
   stride: 2
-  width: 32
-  depth: 4
-  codebook_dim: 32
+  width: 128
+  depth: 3
+  codebook_dim: 64
   codebook_size: 256
   discard_vec_threshold: 1.0
   codebook_loss_weight : 0.8

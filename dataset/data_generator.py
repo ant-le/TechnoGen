@@ -60,7 +60,7 @@ def apply_padding(signal: Tensor, num_samples: int, idx: int) -> Tensor:
 
 
 def generate_dataset_file(config):
-    required_keys = ["min_tempo", "sample_rate", "hop_size", "channels"]
+    required_keys = ["sample_rate", "hop_size", "channels"]
 
     if not all(key in config for key in required_keys):
         raise ValueError(
@@ -70,7 +70,7 @@ def generate_dataset_file(config):
 
     ######## Compute resulting sizes #######
     for key in required_keys:
-        print("{}: {}".format(key, config[key]))
+        print("----> {}: {}".format(key, config[key]))
 
     ######## generate data #######
 
@@ -81,11 +81,12 @@ def generate_dataset_file(config):
         else config["online_data_path"]
     )
 
+    # get paths of all audio files in directory
     song_paths = [str(song_file) for song_file in list(path.rglob("*.wav"))]
     assert len(song_paths) > 0
 
+    # Process and store each song
     features = {}
-    # Loop over all songs
     for idx, song_path in enumerate(
         tqdm(
             (song_paths),
@@ -120,3 +121,7 @@ def generate_dataset_file(config):
         grp = f.create_group(f"{config['num_samples']}")
         for idx, track in features.items():
             grp.create_dataset(idx, data=track.numpy())
+
+
+if __name__ == "__main__":
+    pass

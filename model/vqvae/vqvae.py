@@ -1,4 +1,5 @@
 import torch.nn as nn
+import torch.nn.functional as F
 import torch
 
 from model.vqvae.encoder import Encoder
@@ -57,24 +58,42 @@ class VQVAE(nn.Module):
     def __init__(
         self,
         input_shape=(1, 44_100 * 8),
-        layers: int = 2,
+        layers: int = 1,
         kernel_size: int = 2,
         stride: int = 2,
-        width: int = 32,
-        depth: int = 4,
-        codebook_dim: int = 32,
-        codebook_size: int = 256,
+        width: int = 64,
+        depth: int = 2,
+        codebook_dim: int = 64,
+        codebook_size: int = 512,
         discard_vec_threshold: float = 1.0,
         codebook_loss_weight: float = 0.8,
         spectral_loss_weight: float = 1.0,
-        commit_loss_weight: float = 1.0,
+        commit_loss_weight: float = 0.8,
         init_random: bool = True,
     ):
+        """Vector Qunatized Convolutional Variational Autoencoder
+        Args:
+            input_shape (tuple, optional): _description_.
+            layers (int, optional): Defines compression rate
+            kernel_size (int, optional): _description_.
+            stride (int, optional): _description_.
+            width (int, optional): _description_.
+            depth (int, optional): _description_.
+            codebook_dim (int, optional): _description_.
+            codebook_size (int, optional): _description_.
+            discard_vec_threshold (float, optional):
+            codebook_loss_weight (float, optional):
+            spectral_loss_weight (float, optional):
+            commit_loss_weight (float, optional):
+            init_random (bool, optional):
+        """
         super(VQVAE, self).__init__()
         print("--- Initiate VQ VAE model...")
-        self.channels, self.inut_size = input_shape
+        self.channels, self.input_size = input_shape
         self.spectral_loss_weight = spectral_loss_weight
         self.commit_loss_weight = commit_loss_weight
+        self.codebook_dim = codebook_dim
+        self.compression_dim = self.input_size / (layers + 1)
 
         self.encoder = Encoder(
             self.channels, codebook_dim, layers, kernel_size, stride, width, depth
@@ -135,4 +154,17 @@ class VQVAE(nn.Module):
         for key, val in metrics.items():
             metrics[key] = val.detach()
 
+        if not self.training:
+            out = out.detach()
+
         return out, loss, metrics
+
+    def generate(self):
+        # method using only the decoder part to generate audio
+        # how do I get T?
+        with torch.no_grad():
+            generated_vectors = self.quantizer.get_random_codebook_vetors(
+                int(self.compression_dim)
+            )
+            out = self.decoder(generated_vectors)
+        return out

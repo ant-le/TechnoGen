@@ -5,8 +5,6 @@ import torch
 
 import sys
 
-import wandb
-
 sys.path.append(".")
 
 
@@ -35,17 +33,18 @@ def make_model(config, device, optimizer: str = "adam", train: bool = True):
 
     optimizer = get_optimizer(vqvae, training_conf)
     if path.exists():
-        vqvae, optimizer, epoch = load_checkpoint(vqvae, optimizer, path)
-        print(
-            f"--- Model parameters loaded successfully -> Continue with epoch {epoch}"
-        )
+        vqvae, optimizer, epoch = load_checkpoint(vqvae, optimizer, path, device)
+        print("--- Model parameters were found and loaded successfully!")
+
     else:
         epoch = 0
-        print(f"--- New model parameters -> Start with new model from epoch {epoch}")
+        print("--- No model parameters were found!")
     if not train:
         vqvae.eval()
         for params in vqvae.parameters():
             params.requires_grad = False
+    else:
+        print("--- Start training from Epoch {}".format(epoch))
     return vqvae, optimizer, epoch
 
 
@@ -64,24 +63,22 @@ def save_checkpoint(model, optimizer, epoch, config):
         },
         str(para_dir),
     )
-    wandb.save(str(para_dir))
 
 
-def load_checkpoint(model, optimizer, para_dir):
-    checkpoint = torch.load(para_dir)
+def load_checkpoint(model, optimizer, para_dir, device):
+    checkpoint = torch.load(para_dir, map_location=device)
     model.load_state_dict(checkpoint["model_state_dict"])
     optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
-    epoch = checkpoint["epoch"]
+    epoch = checkpoint["epoch"] + 1
 
     return model, optimizer, epoch
 
 
 def get_optimizer(model, config):
-    if config["optimizer"] == "adam":
-        optimizer = torch.optim.Adam(
-            filter(lambda p: p.requires_grad, model.parameters()),
-            lr=config["lr"],
-        )
-    else:
-        print("Currently training is only supported with 'adam'")
+    optimizer = torch.optim.Adam(
+        filter(lambda p: p.requires_grad, model.parameters()),
+        lr=config["lr"],
+    )
+    if config["optimizer"] != "adam":
+        print("Warning: Currently training is only supported with 'adam'!")
     return optimizer

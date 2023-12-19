@@ -20,9 +20,7 @@ def train(model, data_processor, optimizer, device):
 
     model.train()
 
-    for _, batch in enumerate(
-        tqdm(data_processor, position=1, leave=False, desc="Batch Number")
-    ):
+    for _, batch in enumerate(tqdm(data_processor, leave=False, desc="Batch Number")):
         audio_batch = batch.to(device)
 
         # Feed foward pass
@@ -64,13 +62,24 @@ def evaluate(model, data_processor, device):
 
 
 def run_epochs(config, save_checkpoints: bool = True):
+    # Setup Logger
+    wandb.login()
+    wandb.init(
+        config=config["training"],
+        project=f"TechnoEmbeddings",
+        id=config["training"]["name"],
+        resume="allow",
+    )
+
+    # keeping track of training progress
+    checkpoint_metrics = {}
     epochs_without_improve = 0
     best_loss = 1e6
 
     # Loading data
     data_processor = DataProcessor(config["dataset"])
 
-    # Loading model
+    # Loading model and training device
     device = (
         torch.device("cuda")
         if torch.cuda.is_available()
@@ -80,16 +89,7 @@ def run_epochs(config, save_checkpoints: bool = True):
     )
     print("--- Model runs on device: {}".format(device.type))
 
-    # Setup Logger
-    wandb.login()
-    wandb.init(
-        config=config["training"],
-        project="TechnoGen",
-        id=config["training"]["name"],
-        resume="allow",
-    )
-
-    model, optimizer, epoch = make_model(config, device=device)
+    model, optimizer, epoch_start = make_model(config, device=device)
     wandb.watch(model, log="all", log_freq=200)
 
     # setting up adaptive learning rate
@@ -97,16 +97,16 @@ def run_epochs(config, save_checkpoints: bool = True):
         optimizer,
         milestones=[20, 50, 80],
         gamma=0.1,
-        last_epoch=epoch if epoch > 0 else -1,
+        last_epoch=epoch_start if epoch_start > 0 else -1,
     )
 
     # Define training loop
     for epoch in tqdm(
-        range(config["training"]["epochs"]),
+        range(epoch_start, config["training"]["epochs"]),
         position=0,
         leave=True,
         desc="Running Epochs",
-        initial=epoch,
+        initial=0,
     ):
         # train and validate model
         loss, metrics = train(model, data_processor.train_loader, optimizer, device)
@@ -120,16 +120,21 @@ def run_epochs(config, save_checkpoints: bool = True):
 
         scheduler.step()
 
-        # save model params every 5 epochs
-        if epoch % 5 == 0 and save_checkpoints:
-            save_checkpoint(model, optimizer, epoch, config)
-
         # Loggging
         metrics.update(dict(train_loss=loss, valid_loss=valid_loss))
-        wandb.log(metrics, step=epoch)
+        checkpoint_metrics[epoch] = metrics.copy()
+
         tqdm.write(
-            f"--- Epoch finished with Training Loss: {loss} and valid Loss: {valid_loss}"
+            f"----> Epoch {epoch} finished with Training Loss: {loss} and valid Loss: {valid_loss}"
         )
+
+        # save model params every 5 epochs and only log to wandv for consistent saving
+        if epoch % 5 == 1 and save_checkpoints:
+            for _epoch, _metric in checkpoint_metrics.items():
+                wandb.log(_metric, step=_epoch)
+            save_checkpoint(model, optimizer, epoch, config)
+            checkpoint_metrics = {}
+            tqdm.write(f"----> Epoch {epoch}: Checkpoint saved!")
 
         # Early stopping
         max_no_improvement = config["training"]["early_stop"]
@@ -138,8 +143,7 @@ def run_epochs(config, save_checkpoints: bool = True):
             epochs_without_improve = 0
         else:
             epochs_without_improve += 1
-
-            if epochs_without_improve >= max_no_improvement:
+            if epochs_without_improve >= max_no_improvement and epoch > 10:
                 tqdm.write(
                     f"--- No improvements for {max_no_improvement} consequetive epochs: Early Stopping with best loss = {best_loss}"
                 )
@@ -148,7 +152,12 @@ def run_epochs(config, save_checkpoints: bool = True):
     # logging test accuracy
     test_loss = evaluate(model, data_processor.test_loader, device)
     wandb.log({"Test Loss": test_loss}, step=epoch)
+    wandb.finish()
     tqdm.write(f"--- Training finished with Test Loss: {test_loss}")
+    save_checkpoint(model, optimizer, epoch, config)
+    tqdm.write(
+        f"--- Moel parameters saved successfully as {config['training']['name']}.pth"
+    )
 
 
 if __name__ == "__main__":

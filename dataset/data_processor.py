@@ -1,9 +1,11 @@
 import torch
 from torch.utils.data import Dataset, DataLoader
-from dataset.files_dataset import TechnoGenDataset
+from dataset.file_processor import TechnoGenDataset
 
 
 class HelperDataset(Dataset):
+    """helper Module used train-valid-test splits."""
+
     def __init__(self, dataset, start, end):
         super().__init__()
         self.dataset = dataset
@@ -19,13 +21,18 @@ class HelperDataset(Dataset):
 
 
 class DataProcessor:
+    """Handles all dataset operations used for training and evaluation.
+    Instantiates DataLoader instances for train, valid and test set
+    which can be used directly for batch processing in the training loop.
+    """
+
     def __init__(self, config):
         self.dataset = TechnoGenDataset(config)
-        self.create_datasets(config)
-        self.create_data_loaders(config)
-        self.print_stats()
+        self._create_datasets(config)
+        self._create_data_loaders(config)
+        self._print_stats()
 
-    def create_datasets(self, config):
+    def _create_datasets(self, config):
         assert sum(config["split"]) == 1
         train_len = int(len(self.dataset) * config["split"][0])
         valid_len = int(len(self.dataset) * (config["split"][0] + config["split"][1]))
@@ -33,7 +40,7 @@ class DataProcessor:
         self.valid_dataset = HelperDataset(self.dataset, train_len, valid_len)
         self.test_dataset = HelperDataset(self.dataset, valid_len, len(self.dataset))
 
-    def create_data_loaders(self, config):
+    def _create_data_loaders(self, config):
         # Loader to load mini-batches
         collate_fn = lambda batch: torch.stack([torch.from_numpy(b) for b in batch], 0)
 
@@ -60,7 +67,7 @@ class DataProcessor:
             # collate_fn=collate_fn,
         )
 
-    def print_stats(self):
+    def _print_stats(self):
         print(
             f"--- Data Loader created with sizes: Train {len(self.train_dataset)} samples. Valid {len(self.valid_dataset)} samples. Test {len(self.test_dataset)} samples"
         )

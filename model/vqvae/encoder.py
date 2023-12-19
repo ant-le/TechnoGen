@@ -19,6 +19,7 @@ class Encoder(nn.Module):
         kernel, padding = stride * kenel_size, stride // kenel_size
 
         blocks = []
+        # downsampling
         for i in range(layers):
             block = nn.Sequential(
                 nn.Conv1d(

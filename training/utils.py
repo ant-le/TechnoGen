@@ -54,7 +54,6 @@ def make_model(config, device, optimizer: str = "adam", train: bool = True):
 
 
 def save_checkpoint(model, optimizer, epoch, config):
-    # store data in hdf5 format in data directory
     para_dir = PosixPath(
         "model", "vqvae", "parameter", f"{config['training']['name']}.pth"
     )

@@ -22,6 +22,7 @@ class Decoder(nn.Module):
         block = nn.ConvTranspose1d(codebook_dim, width, 3, 1, 1)
         blocks.append(block)
 
+        # upsampling
         for i in range(layers):
             block = nn.Sequential(
                 ResBlock1D(width, depth),

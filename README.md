@@ -15,7 +15,7 @@ architecture.
 > [!NOTE]<br>
 > The chosen procedure greatly differs from my initial plans. Some of the major changes are:
 > 1. Using raw audio data as input (good *MIDI* data was difficult to obtain)
-> 2. Using Vector Quantized Variational Autoencoder vor generating music embeddings (enormous input sizes with raw audio)
+> 2. Using Vector Quantized Variational Autoencoder for generating music embeddings (enormous input sizes with raw audio)
 
 ## Table of contents
 
@@ -69,6 +69,7 @@ One major difficulty was to compromise between file sizes and data quality, as g
 
 #### Model
 ![](docs/img/model_vis.png)
+
 I implemented a Vector Quantized Variational Autoencoder (VQVAE) in pytorch inspired by [1] and [2] in order to reduce the dimensionality of input. The implementation is done similar to the shown graph in [3] where I added some residual blocks in both, the encoder and decoder block to ensure information flow. The embedding dictionary (bottleneck) in implemented in `vectorQuantizer` where no gradients pass through. During training, model parameters are stored in the `parameters` directory. Losses are also directly implemented into the model.
 
 ```
@@ -110,13 +111,15 @@ As of now, I trained, validated and tested the models each on a different subset
 :-------------------------:|:-------------------------:
 <img src="docs/img/spec_loss.png" width="600">|  <img src="docs/img/commit_loss.png" width="600">
 
-Plotting two of the main loss components over time, the small baseline still performes very well compared to the much bigger models using only a fraction of codebook vectors. However, one needs to be cautious as I only trained on a total of 20 songs and roughly $1000$ training samples where a small codebook size might still be enough as the data still lack variability. However, I was able to beat my initial baseline (at least for this milestone) with test set metrics of:
+Plotting two of the main loss components over time, the small baseline still performes very well compared to the much bigger models using only a fraction of codebook vectors. However, one needs to be cautious as I only trained on a total of 20 songs and roughly $1000$ training samples where a small codebook size might still be enough as the data still lacks variability. However, I was able to beat my initial baseline (at least for this milestone) with test set metrics of:
 
 | Model       |           Loss |
 | ----------- | :-----------------------: |
 | Baseline |           0.105          |
 | Compression  |           0.4345           |
 | Compression + Codebook  |           0.07521           |
+
+Finally, for the qualitative assessments I placed a working example in `docs/wav/` where a reconstructed sound is compared to its original state. I did not include a file of a generated sound since up to this point, it is still mainly comprised of randomly sounding noise. However, the reconstruction process seems to work a lot better.
 
 
 ## Time Adjustments

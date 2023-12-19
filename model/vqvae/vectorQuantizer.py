@@ -79,8 +79,6 @@ class VectorQuantizer(nn.Module):
         else:
             codebook = x[torch.randperm(x.shape[0])][: self.codebook_size]
 
-        # find cluster means serving as initial vectors in codeboook
-
         # Update codebook
         self.codebook = codebook
         self.codebook_avg = codebook.clone()

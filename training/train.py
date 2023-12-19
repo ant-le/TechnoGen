@@ -12,7 +12,7 @@ from training.utils import make_model, save_checkpoint
 
 def train(model, data_processor, optimizer, device):
     losses = []
-    metrics = {  # TODO: modify to dynamically write dict
+    metrics = {
         "recons_loss": [],
         "spectral_loss": [],
         "commit_loss": [],
@@ -28,6 +28,7 @@ def train(model, data_processor, optimizer, device):
         _, loss, loss_comps = model(audio_batch)
         losses.append(loss)
 
+        # store metics in dictionary
         for key in metrics.keys():
             metrics[key].append(loss_comps[key])
 

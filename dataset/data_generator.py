@@ -83,9 +83,10 @@ def generate_dataset_file(config):
 
     # get paths of all audio files in directory
     song_paths = [str(song_file) for song_file in list(path.rglob("*.wav"))]
-    song_path.append([str(song_file) for song_file in list(path.rglob("*.mp3"))])
+    song_paths.extend([str(song_file) for song_file in list(path.rglob("*.mp3"))])
     assert len(song_paths) > 0
 
+    sample_rate = config["sample_rate"]
     # Process and store each song
     features = {}
     for idx, song_path in enumerate(
@@ -99,14 +100,14 @@ def generate_dataset_file(config):
         # Loading and preparing track (audio file)
         audio_wave, sr = torchaudio.load(song_path)
         audio_wave = resample(
-            audio_wave, from_sr=sr, to_sr=config["sample_rate"], debug=config["verbose"]
+            audio_wave, from_sr=sr, to_sr=sample_rate, debug=config["verbose"]
         )
         audio_wave = mix_down(audio_wave)
 
         audio_seq = split_by_time(
             audio_wave,
             k_seconds=config["hop_size"],
-            same_rate=config["sample_rate"],
+            same_rate=sample_rate,
         )
 
         features[str(idx)] = audio_seq
@@ -115,11 +116,12 @@ def generate_dataset_file(config):
     data_path = Path(__file__).parent / "data"
     data_path.mkdir(exist_ok=True)
 
+    num_samples = sample_rate * config["hop_size"]
     with h5py.File(
-        data_path / f"techno_{config['num_samples']}.h5",
+        data_path / f"techno_{num_samples}_{sample_rate}.h5",
         "w",
     ) as f:
-        grp = f.create_group(f"{config['num_samples']}")
+        grp = f.create_group(f"{num_samples}")
         for idx, track in features.items():
             grp.create_dataset(idx, data=track.numpy())
 

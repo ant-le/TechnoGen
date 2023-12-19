@@ -105,23 +105,31 @@ For the task at hand, my simple baseline had many problems with vanishing or exp
   3. *Bonus*: Generating something what can be considered sound from codebook vectors
 
 #### Results 
+As of now, I trained, validated and tested the models each on a different subset of songs and their corresponding splits. I trained three main models with different sizes and settings, of which the smallest `baseline` model could also be trained on my local *M1 Mac* even at a sample rate of $44 100$ for 100 epochs. The second model `big_compression` only extended the baseline by compressing the audios to the latent space at a factor of $4$ while the last model also greatly increased the codebook dimensions. The latter two models were trained on google collab while I am planning to establish further training steps on *aws sagemaker*. Each model was trained with early stopping at a maximum of 100 epochs, which none of the models actually got to. Batch sizes remained rather small which was one of the drawbacks of my choice of high audio quality. The baseline is only recorded after epoch $35$ as I encountered some errors when dealing with the baseline. 
+
+ Reconstruction Quality             |  Codebook Vector Closeness
+:-------------------------:|:-------------------------:
+<img src="docs/img/spec_loss.png" width="600">|  <img src="docs/img/commit_loss.png" width="600">
+
+Plotting two of the main loss components over time, the small baseline still performes very well compared to the much bigger models using only a fraction of codebook vectors. However, one needs to be cautious as I only trained on a total of 20 songs and roughly $1000$ training samples where a small codebook size might still be enough as the data still lack variability. However, I was able to beat my initial baseline (at least for this milestone) with test set metrics of:
+
+| Model       |           Loss |
+| ----------- | :-----------------------: |
+| Baseline |           0.105          |
+| Compression  |           0.4345           |
+| Compression + Codebook  |           0.07521           |
 
 
+## Time Adjustments
 
-
-## Time Plan
-
-The time plan consists of several stages, where the building & fine-tuning of the model are expected
-to be the most time consuming tasks. Note that I plan to include considerations about the final report
-and the presentation in each part of the other stages. As I am further quite new to the topic of audio processing
-and music generation in particular, I expect the project to be a lot more time consuming as indicated by the
-ECTS, which is however a circumstance I am willing to take.
+**"I expect the project to be a lot more time consuming as indicated by the ECTS, which is however a circumstance I am willing to take."** -  In line with these words from the first milestone, the project turned out to be very time-consuming with many difficult choices to make. I will however remain working on the problem, especially since the pipeline and model building was so intensive, but insightful and major progresses only started over the last week. Some of which are:
+- 
 
 | Task | Hours | Deadline |
 | --- | --- | --- |
-| dataset collection | 15 | 31.10.2023 |
-| Model Design & Building| > 25  | 25.11.2023 |
-| Training & Fine-Tuning| > 25 | 15.12.2023 |
+| dataset collection | 5 | 31.10.2023 |
+| Model Design & Building| ~30  | 25.11.2023 |
+| Training & Fine-Tuning| >30 | 15.12.2023 |
 | Application Building| 10 | 10.01.2024 |
 | Final Report | 5 | 15.01.2024 |
 | Presentation Preparation| 5 | 15.01.2024 |

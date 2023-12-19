@@ -18,13 +18,16 @@ class TechnoGenDataset(Dataset):
         super(TechnoGenDataset, self).__init__()
 
         self.audio_lookup = {}
+        sample_rate = config["sample_rate"]
+        hop_size = config["hop_size"]
+        self.num_samples = sample_rate * hop_size
         self.data_path = PosixPath(
-            "dataset", "data", f"techno_{config['num_samples']}.h5"
+            "dataset", "data", f"techno_{self.num_samples}_{sample_rate}.h5"
         )
         # create a lookup table for quickly acessing samples
         if not self.data_path.exists():
             print(
-                f"--- Dataset does not exist for sample rate {config['sample_rate']} and hop size {config['hop_size']}. Creating the dataset now..."
+                f"--- Dataset does not exist for sample rate {sample_rate} and hop size {hop_size}. Creating the dataset now..."
             )
             generate_dataset_file(config)
 

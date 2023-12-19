@@ -24,9 +24,9 @@ model:
   kernel_size: 2
   stride: 2
   width: 128
-  depth: 3
+  depth: 2
   codebook_dim: 64
-  codebook_size: 256
+  codebook_size: 128
   discard_vec_threshold: 1.0
   codebook_loss_weight : 0.8
   spectral_loss_weight: 1.0

@@ -66,7 +66,7 @@ def run_epochs(config, save_checkpoints: bool = True):
     wandb.login()
     wandb.init(
         config=config["training"],
-        project=f"TechnoEmbeddings",
+        project=f"TechnoGen",
         id=config["training"]["name"],
         resume="allow",
     )

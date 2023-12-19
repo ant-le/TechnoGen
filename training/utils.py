@@ -13,7 +13,12 @@ def make_model(config, device, optimizer: str = "adam", train: bool = True):
     training_conf = config["training"]
 
     vqvae = VQVAE(
-        input_shape=((config["dataset"]["channels"], config["dataset"]["num_samples"])),
+        input_shape=(
+            (
+                config["dataset"]["channels"],
+                config["dataset"]["sample_rate"] * config["dataset"]["hop_size"],
+            )
+        ),
         layers=model_conf["layers"],
         kernel_size=model_conf["kernel_size"],
         stride=model_conf["stride"],

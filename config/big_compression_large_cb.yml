@@ -7,7 +7,7 @@ dataset:
   verbose: true
   channels: 1
   split: [.8, .1, .1]
-  batch_size: 16
+  batch_size: 8
   shuffle: true
   limit: None
 
@@ -24,7 +24,7 @@ model:
   kernel_size: 2
   stride: 2
   width: 128
-  depth: 2
+  depth: 3
   codebook_dim: 64
   codebook_size: 512
   discard_vec_threshold: 1.0

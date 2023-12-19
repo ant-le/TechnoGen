@@ -1,35 +1,72 @@
 # TechnoGen: An AI Techno Music Generator
 
 > Author: `Anton Lechuga` <br>
-> Project Type: `Beat the classics| Bring your own data` <br>
-> Domain `Audio Processing`
+> Project Type: `Beat the classics | Bring your own data` <br>
+> Domain `Audio Processing | Music Generation`
 
 The goal is to build a model that that generates Electronic Dance Music (EDM) indistinguishable from human creators.
 In order to limit the scope of the project, I decided to concentrate on the subgeneres of
-[Industrial](https://en.wikipedia.org/wiki/Industrial_techno) and/or [Acid](https://en.wikipedia.org/wiki/Acid_techno)
-Techno, which are very similar in structure, melody and rhythm.
+[Industrial](https://en.wikipedia.org/wiki/Industrial_techno) and/or [Acid](https://en.wikipedia.org/wiki/Acid_techno) Techno, which are very similar in structure, melody and rhythm.
 
 This project is a part of the course 'Applied Deep Learning' at the Technical University Vienna,
-in which I want to investigate to what degree recent advances in the creation of classical music can
-transfer to other genres of music.
+in which I want to investigate to what degree it is possible to downscale current state of the art
+architectu
 
-## 1) Introduction
+## Table of contents
 
-(Techno) music greatly relies on repeating elements and structures and there are many
-interesting [theories](https://www.youtube.com/watch?v=JcjT7zgs6cs) around this topic.
-Just as an example for the techno genre, many tracks are structured in sequences of 8-16 beats
-and often incorporate music theoretical concepts such as of harmony and dissonance.
-Very basic techno elements can be already created by fairly simple LSTM architectures,
-as [generated](http://www.youtube.com/watch?v=YOUTUBE_VIDEO_ID_HERE) music from this
-[blog post](https://medium.com/@leesurkis/how-to-generate-techno-music-using-deep-learning-17c06910e1b3)
-illustrates. My goal will be to extend on this by using more recent model architectures
-(Transformer Models, GAN) which have already been successfully employed in classical music settings.
-This project's end goal is to obtain a model that is able to capture these concepts in order to
-generate new pieces of art following similar structures.
+- [1. Usage](#1-usage)
+- [2. Approach](#2-appraoch)
+  - [2.1 Dataset](#-dataset)
+  - [2.2 Model](#-model)
+- [3. Training & Results](#3-training-and-results)
+- [4. Planned Extensions](#3-results)
 
-## 2) Dataset Creation
+## 1. Usage
 
-I chose to opt for raw audio data.
+After installing the required dependencies with running
+
+```bash
+pip install -r requirements.txt
+```
+
+The codebase in designed for training of a model end-to-end after specifying the directory with the audio file location.
+
+For running the training loop, run:
+```bash
+python3 training/train.py --config config/<config_name>.yml
+```
+
+## 2. Appraoch
+  > [!NOTE]<br>
+  > Deviations from planned milestone 1 ...
+  The initial goal was to implement a music generator by the deadline of milestone 2. For now, this goal was reduced due to constraints in time and hardware and is planned to be added in future releases.
+
+
+#### Dataset
+- pipeline is designed to work on any audio data, currently supported file types are .wav and .mp3 extensions 
+- all data operations are in the 'dataset/*' and can be configurated:
+    ```yaml
+    dataset:
+      offline_data_path: '<path_to_audio>' 
+      sample_rate: 44_100 
+      hop_size: 8 # number of seconds of training samples
+      channels: 1 # number of audio channels to use
+      split: [.8, .1, .1] 
+      batch_size: 16 
+      shuffle: true
+      limit: None
+    ```
+
+
+
+dataset considerations:
+- raw audio data 
+- selection of tracks from freely downloadable **.wav** files from music platform [soundcloud](https://soundcloud.com/discover). 
+- I opted for high quality audio over quantity
+
+
+The pipeline is designed for processing audio files end-to-end taking raw audio samples as an input.  
+
 In this case, data quality is much more important than quantity and genre specific information can be incorporated
 
 I constructed my own dataset of tracks which were free to download on soundcloud
@@ -44,38 +81,14 @@ it consituted much time as there were many factors to be considered
 - number of channels
 - sample lenght
 
-## 3) Approach
+#### Model
 
-### 3.1 Model Design
 
-As a starting point, I decided to take the music transformer which which was already successfully deployed on classical music data [2].
-Inspired by transformer models for NLP, the authors built a model which is able to
-capture long-term structures of music by introducing relative attention mechanisms. These mulit-head attentions
-'remember' reoccurring elements and timed structures in (classical) music [2].
+## 3. Training and Results
 
-Such mechanisms can naturally also be relevant for techno music. As the authors had lots of data and computing
-capacity, I might downscale this approach to fit my needs or opt for other models ([LSTM](https://github.com/Skuldur/Classical-Piano-Composer)) in case
-I encounter unexpected difficulties.
 
-### 3.2 Training
 
-In the words of the authors of my reference article, *different genres call for different ways of
-serializing polyphonic music into a single stream and also discretizing time.* [2, p.3].
-Hence, the first important step in training will be to experiment how the genre of techno
-can be fitted into the model for attributes (e.g. beat, kick-drum, ..., ) and rows (e.g. 1 beat, 8 beats, ...) [2].
-In related papers and works, the training time often exceeded 24 hours. Hence, I will need
-to take this into account and experiment with different training data sizes in order to be
-able to finish the project with the given resources as hyperparameter settings are an important aspect to optimise for.
 
-### 3.3 Evaluation
-
-One big question mark lies in how to evaluate the model, since it is generally difficult to
-evaluate generative art. While objective methods might comprise music theoretical consideration,
-I am currently planning to opt for a subjective evaluation. The current plan is to conduct a
-Listening Test Study with the participants of the course, where participants will be asked to
-take part in a Turing test, where they need to judge wether a techno piece was generated by the
-model or human-created [3]. Weather this will be implemented in the application or conducted differently
-(f.e. during the project presentation) is still undecided.
 
 ## Time Plan
 

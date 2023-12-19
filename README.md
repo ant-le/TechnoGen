@@ -42,14 +42,25 @@ python3 training/train.py --config config/<config_name>.yml
 ## 2. Appraoch
   > [!NOTE]<br>
   > The chosen procedure greatly differs from my initial plans. Some of the major changes are:
-  > - 
+  > 1. Using raw audio data as input (good *MIDI* data was difficult to obtain)
+  > 2. Using Vector Quantized Variational Autoencoder vor generating music embeddings (enormous input sizes with raw audio)
   
-  Deviations from planned milestone 1 ...
-  The initial goal was to implement a music generator by the deadline of milestone 2. For now, this goal was reduced due to constraints in time and hardware and is planned to be added in future releases.
-
-
 #### Dataset
-- pipeline is designed to work on any audio data, currently supported file types are .wav and .mp3 extensions 
+While I used a collection of techo tracks from [Soundcloud](https://soundcloud.com/discover), I explain the procedure of how a dataset is generated more broadly in the following. The file structure for all elements concerned with data operations are shown down below.
+```
+├── 📂 dataset
+│   ├── 📂 data
+│   │   ├── 📜 techo_<sample_rate>.h5
+│   │   │   ...
+│   ├── 📜 data_generator.py
+│   ├── 📜 data_processor.py
+│   └── 📜 file_processor.py
+```
+
+
+
+
+The pipeline is designed to work on any audio data, currently supported file types are `.wav` and `.mp3` extensions. 
 - all data operations are in the 'dataset/*' and can be configurated:
     ```yaml
     dataset:
@@ -91,7 +102,8 @@ it consituted much time as there were many factors to be considered
 
 
 ## 3. Training and Results
-
+Deviations from planned milestone 1 ...
+The initial goal was to implement a music generator by the deadline of milestone 2. For now, this goal was reduced due to constraints in time and hardware and is planned to be added in future releases.
 
 
 

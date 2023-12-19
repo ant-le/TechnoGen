@@ -21,9 +21,9 @@ architectu
 - [3. Training & Results](#3-training-and-results)
 - [4. Planned Extensions](#3-results)
 
-## 1. Usage
 
-After installing the required dependencies with running
+## 1. Usage
+Installation of the required dependencies using *Python 3.9* onwards with
 
 ```bash
 pip install -r requirements.txt
@@ -36,9 +36,15 @@ For running the training loop, run:
 python3 training/train.py --config config/<config_name>.yml
 ```
 
+
+
+
 ## 2. Appraoch
   > [!NOTE]<br>
-  > Deviations from planned milestone 1 ...
+  > The chosen procedure greatly differs from my initial plans. Some of the major changes are:
+  > - 
+  
+  Deviations from planned milestone 1 ...
   The initial goal was to implement a music generator by the deadline of milestone 2. For now, this goal was reduced due to constraints in time and hardware and is planned to be added in future releases.
 
 
@@ -117,3 +123,38 @@ Music transformer. arXiv preprint arXiv:1809.04281.
 
 [3] Briot, J. P., Hadjeres, G., & Pachet, F. D. (2020). Deep learning techniques for music generation (Vol. 1).
 Heidelberg: Springer.
+
+
+```
+
+├── 📂 config
+├── 📂 docs
+│
+├──📂 inference
+│
+├──📂 dataset
+│
+├──📂 model
+│
+├──📂 tests
+│
+├──📂 training
+
+├── 📂 existing
+│   ├── 📂 musicxml
+│   │   ├── Mozart
+│   │   │   ...
+│   │   │   └── 📜 Very Famous Composition.mxl
+│   │   ...
+│   │   └── 📜 Mr. Brightside – The Killers.mxl
+│   ├── 📂 render_png
+│   └── 📂 render_svg
+├── 📂 generated
+│   ├── 📂 musicxml
+│   ├── 📂 render_png
+│   └── 📂 render_svg
+└── 📂 pairs
+    ├── 📂 clean
+    ├── 📜 clean_dirty_index.csv
+    └── 📂 dirty
+```

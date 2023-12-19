@@ -5,7 +5,7 @@
 > Domain `Audio Processing | Music Generation`
 
 The goal is to build a model that that generates Electronic Dance Music (EDM) indistinguishable from human creators.
-In order to limit the scope of the project, I decided to concentrate on the subgeneres of
+In order to limit the scope of the project, I decided to concentrate on the sub-genres of
 [Industrial](https://en.wikipedia.org/wiki/Industrial_techno) and/or [Acid](https://en.wikipedia.org/wiki/Acid_techno) Techno, which are very similar in structure, melody and rhythm.
 
 This project is a part of the course 'Applied Deep Learning' at the Technical University Vienna,
@@ -99,7 +99,7 @@ $$L=L_{reconstruction}+L_{codebook}+L_{commit}$$
 
 Hereby, the reconstruction loss is further divided into two terms assessing a one-dimensional difference between the input and reconstruction on the one hand and a spectral difference of their spectrograms on the other hand. Since the codebook loss measures the difference between the encoded sound and the codebook vectors, it is also an important measure to keep track of as average closeness between both vectors might be an indicator for better ability to generate sounds as well. Hence, during training I kept track of all the metrics mentioned in this paragraph.
 
-For the task at hand, my simple baseline had many problems with vanishing or exploding gradients barely getting under a validation set loss of $1$. Hence, my inital goal was set two-folded:
+For the task at hand, my simple baseline had many problems with vanishing or exploding gradients barely getting under a validation set loss of $1$. Hence, my initial goal was set two-folded:
   1. Quantitave Assesment: $L<0.25$
   2. Qualitative Assesment: Reconstruction is subjectively close to input audio
   3. *Bonus*: Generating something what can be considered sound from codebook vectors
@@ -111,7 +111,7 @@ As of now, I trained, validated and tested the models each on a different subset
 :-------------------------:|:-------------------------:
 <img src="docs/img/spec_loss.png" width="600">|  <img src="docs/img/commit_loss.png" width="600">
 
-Plotting two of the main loss components over time, the small baseline still performes very well compared to the much bigger models using only a fraction of codebook vectors. However, one needs to be cautious as I only trained on a total of 20 songs and roughly $1000$ training samples where a small codebook size might still be enough as the data still lacks variability. However, I was able to beat my initial baseline (at least for this milestone) with test set metrics of:
+Plotting two of the main loss components over time, the small baseline still performs very well compared to the much bigger models using only a fraction of codebook vectors. However, one needs to be cautious as I only trained on a total of 20 songs and roughly $1000$ training samples where a small codebook size might still be enough as the data still lacks variability. However, I was able to beat my initial baseline (at least for this milestone) with test set metrics of:
 
 | Model       |           Loss |
 | ----------- | :-----------------------: |
@@ -125,11 +125,11 @@ Finally, for the qualitative assessments I placed a working example in `docs/wav
 ## Time Adjustments
 **"I expect the project to be a lot more time consuming as indicated by the ECTS, which is however a circumstance I am willing to take."** -  In line with these words from the first milestone, the project turned out to be very time-consuming with many difficult choices to make. I will however remain working on the problem, especially since the pipeline and model building was so intensive, but insightful and major progresses only started over the last week. Some of which are:
 
-- Optimising data processing without storing intermediate data files
+- Optimizing data processing without storing intermediate data files
 - Increasing training data by sliding through data instead of creating independent splits
 - implementing attention layer as techno music has many reoccuring themes
 - Running training on more stable environment compared to google collab
--  **Optional**: Depending on success of VCVAE generation, implement simple transformer for generating sound based on codebook vectors
+-  **Optional**: Depending on success of VQVAE generation, implement simple transformer for generating sound based on codebook vectors
 
 | Task | Hours | Deadline |
 | --- | --- | --- |

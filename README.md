@@ -46,8 +46,7 @@ python3 training/train.py --config config/<config_name>.yml
 
 ## 2. Appraoch
 
-WHAT DID I CHANGE 
-
+My approach consists of two main stages, since I did not operate on an existing dataset. Hence, I first implemented a pipeline to process audio files for training a model, which will be explained in the last part of this section.
 #### Dataset
 > [!WARNING]<br>
 > File sizes can grow very quickly when working with hight quality audio data! 
@@ -121,9 +120,13 @@ Plotting two of the main loss components over time, the small baseline still per
 
 
 ## Time Adjustments
-
 **"I expect the project to be a lot more time consuming as indicated by the ECTS, which is however a circumstance I am willing to take."** -  In line with these words from the first milestone, the project turned out to be very time-consuming with many difficult choices to make. I will however remain working on the problem, especially since the pipeline and model building was so intensive, but insightful and major progresses only started over the last week. Some of which are:
-- 
+
+- Optimising data processing without storing intermediate data files
+- Increasing training data by sliding through data instead of creating independent splits
+- implementing attention layer as techno music has many reoccuring themes
+- Running training on more stable environment compared to google collab
+-  **Optional**: Depending on success of VCVAE generation, implement simple transformer for generating sound based on codebook vectors
 
 | Task | Hours | Deadline |
 | --- | --- | --- |
@@ -133,6 +136,9 @@ Plotting two of the main loss components over time, the small baseline still per
 | Application Building| 10 | 10.01.2024 |
 | Final Report | 5 | 15.01.2024 |
 | Presentation Preparation| 5 | 15.01.2024 |
+
+
+And of course, I am open and very grateful for any feedback and hints how to improve the pipeline and overall approach of the project! 
 
 ## References
 

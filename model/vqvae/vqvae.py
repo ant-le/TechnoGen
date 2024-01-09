@@ -18,8 +18,8 @@ def get_spectral_loss(
     """Specral Convergence between input and output spectrograms"""
 
     # mps backend is not implemented for these operations
-    x = x.to("cpu") if torch.backends.mps.is_available() else x
-    out = out.to("cpu") if torch.backends.mps.is_available() else out
+    x = x.to("cpu") if x.device.type == "mps" else x
+    out = out.to("cpu") if out.device.type == "mps" else out
 
     out, x = (  # (B,C,T) -> (B,T,C)
         torch.mean(out.permute(0, 2, 1).float(), -1),
@@ -57,19 +57,19 @@ def get_spectral_loss(
 class VQVAE(nn.Module):
     def __init__(
         self,
-        input_shape=(1, 44_100 * 8),
-        layers: int = 1,
-        kernel_size: int = 2,
+        input_shape,
+        layers: int = 7,
         stride: int = 2,
-        width: int = 64,
-        depth: int = 2,
+        width: int = 128,
+        depth: int = 4,
         codebook_dim: int = 64,
         codebook_size: int = 512,
-        discard_vec_threshold: float = 1.0,
+        discard_vec_threshold: float = 0.8,
         codebook_loss_weight: float = 0.8,
         spectral_loss_weight: float = 1.0,
         commit_loss_weight: float = 0.8,
         init_random: bool = True,
+        lstm: bool = False,
     ):
         """Vector Qunatized Convolutional Variational Autoencoder
         Args:
@@ -89,14 +89,16 @@ class VQVAE(nn.Module):
         """
         super(VQVAE, self).__init__()
         print("--- Initiate VQ VAE model...")
+
         self.channels, self.input_size = input_shape
+        # assert self.input_size % (stride**layers) == 0
+
         self.spectral_loss_weight = spectral_loss_weight
         self.commit_loss_weight = commit_loss_weight
         self.codebook_dim = codebook_dim
-        self.compression_dim = self.input_size // (layers + 1)
 
         self.encoder = Encoder(
-            self.channels, codebook_dim, layers, kernel_size, stride, width, depth
+            self.channels, codebook_dim, layers, stride, width, depth, lstm
         )
 
         self.quantizer = VectorQuantizer(
@@ -108,7 +110,7 @@ class VQVAE(nn.Module):
         )
 
         self.decoder = Decoder(
-            self.channels, codebook_dim, layers, kernel_size, stride, width, depth
+            self.channels, codebook_dim, layers, stride, width, depth, lstm
         )
 
         print(
@@ -129,6 +131,7 @@ class VQVAE(nn.Module):
         x_reencoded, commit_loss, metrics = self.quantizer(x_encoded)
 
         # Decode
+
         out = self.decoder(x_reencoded)
 
         # Losses -> change to multispectral loss?
@@ -162,7 +165,7 @@ class VQVAE(nn.Module):
     def generate(self):
         with torch.no_grad():
             generated_vectors = self.quantizer.get_random_codebook_vetors(
-                self.compression_dim
+                self.input_size // 2**6
             )
             out = self.decoder(generated_vectors)
         return out

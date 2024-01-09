@@ -16,6 +16,8 @@ def train(model, data_processor, optimizer, device):
         "recons_loss": [],
         "spectral_loss": [],
         "commit_loss": [],
+        "fit": [],
+        "entropy": [],
     }
 
     model.train()

@@ -20,7 +20,6 @@ def make_model(config, device, optimizer: str = "adam", train: bool = True):
             )
         ),
         layers=model_conf["layers"],
-        kernel_size=model_conf["kernel_size"],
         stride=model_conf["stride"],
         width=model_conf["width"],
         depth=model_conf["depth"],
@@ -31,6 +30,7 @@ def make_model(config, device, optimizer: str = "adam", train: bool = True):
         spectral_loss_weight=model_conf["spectral_loss_weight"],
         commit_loss_weight=model_conf["commit_loss_weight"],
         init_random=model_conf["init_random"],
+        lstm=model_conf["lstm"],
     )
     vqvae = vqvae.to(device)
 

@@ -1,8 +1,7 @@
 dataset:
   offline_data_path: '/Users/anton/Documents/Music/'
   online_data_path: = 'none'
-  sample_rate: 44_100
-  num_samples: 352_800
+  sample_rate: 44_000
   hop_size: 8
   verbose: true
   channels: 1
@@ -12,23 +11,23 @@ dataset:
   limit: None
 
 training:
-  name: 'big_compression'
+  name: 'baseline_lrg'
   epochs: 100
   optimizer: 'adam'
-  lr: 0.001
-  early_stop: 10
+  lr: 0.0001
+  early_stop: 20
   clipping_fac: 2
 
 model:
-  layers: 4
-  kernel_size: 2
+  layers: 6
   stride: 2
   width: 128
-  depth: 2
+  depth: 3
   codebook_dim: 64
-  codebook_size: 128
+  codebook_size: 512
   discard_vec_threshold: 1.0
   codebook_loss_weight : 0.8
   spectral_loss_weight: 1.0
   commit_loss_weight : 0.8
   init_random: true
+  lstm: false

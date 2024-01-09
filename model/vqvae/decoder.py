@@ -1,6 +1,7 @@
 import torch.nn as nn
 
 from model.vqvae.resid import ResBlock1D
+from model.vqvae.lstm import LSTMBlock1D
 
 
 class Decoder(nn.Module):
@@ -9,18 +10,22 @@ class Decoder(nn.Module):
         channels: int,
         codebook_dim: int,
         layers: int,
-        kenel_size: int,
         stride: int,
         width: int,
         depth: int,
+        lstm: bool,
     ):
         super(Decoder, self).__init__()
 
-        kernel, padding = stride * kenel_size, stride // kenel_size
+        kernel, padding = stride * 2, stride // 2
 
         blocks = []
-        block = nn.ConvTranspose1d(codebook_dim, width, 3, 1, 1)
+        block = nn.ConvTranspose1d(codebook_dim, width, 3, 1, 0)
         blocks.append(block)
+
+        if lstm:
+            block = LSTMBlock1D(width)
+            blocks.append(block)
 
         # upsampling
         for i in range(layers):
@@ -35,6 +40,7 @@ class Decoder(nn.Module):
                 ),
             )
             blocks.append(block)
+
         self.model = nn.Sequential(*blocks)
 
     def forward(self, x):

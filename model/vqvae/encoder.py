@@ -1,6 +1,7 @@
 import torch.nn as nn
 
 from model.vqvae.resid import ResBlock1D
+from model.vqvae.lstm import LSTMBlock1D
 
 
 class Encoder(nn.Module):
@@ -9,14 +10,14 @@ class Encoder(nn.Module):
         channels: int,
         codebook_dim: int,
         layers: int,
-        kenel_size: int,
         stride: int,
         width: int,
         depth: int,
+        lstm: bool,
     ):
         super(Encoder, self).__init__()
 
-        kernel, padding = stride * kenel_size, stride // kenel_size
+        kernel, padding = stride * 2, stride // 2
 
         blocks = []
         # downsampling
@@ -29,7 +30,11 @@ class Encoder(nn.Module):
             )
             blocks.append(block)
 
-        block = nn.Conv1d(width, codebook_dim, 3, 1, 1)
+        if lstm:
+            block = LSTMBlock1D(width)
+            blocks.append(block)
+
+        block = nn.Conv1d(width, codebook_dim, 3, 1, 0)
         blocks.append(block)
         self.model = nn.Sequential(*blocks)
 

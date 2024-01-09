@@ -2,7 +2,7 @@ import torch.nn as nn
 
 
 class ResBlock1D(nn.Module):
-    def __init__(self, width, depth, res_scale: int = 1, dilation=1):
+    def __init__(self, width: int, depth: int, res_scale: int = 1, dilation: int = 1):
         super(ResBlock1D, self).__init__()
         self.res_scale = res_scale
         self.model = nn.Sequential(

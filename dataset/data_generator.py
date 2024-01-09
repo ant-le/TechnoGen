@@ -74,7 +74,7 @@ def generate_dataset_file(config):
 
     ######## generate data #######
 
-    # Define further configurations and initiate feature dict for storing restults
+    # Define further configurations and initiate feature dict for storing results
     path = (
         PosixPath(config["offline_data_path"])
         if PosixPath(config["offline_data_path"]).exists()
@@ -83,7 +83,8 @@ def generate_dataset_file(config):
 
     # get paths of all audio files in directory
     song_paths = [str(song_file) for song_file in list(path.rglob("*.wav"))]
-    song_paths.extend([str(song_file) for song_file in list(path.rglob("*.mp3"))])
+    # song_paths.extend([str(song_file) for song_file in list(path.rglob("*.mp3"))])
+    print(len(song_paths))
     assert len(song_paths) > 0
 
     sample_rate = config["sample_rate"]

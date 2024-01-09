@@ -49,7 +49,6 @@ class VectorQuantizer(nn.Module):
         codebook_loss_weight: float,
         discard_vec_threshold: int = 1,
         init_random: bool = True,
-        embedding: bool = True,
     ):
         super(VectorQuantizer, self).__init__()
 

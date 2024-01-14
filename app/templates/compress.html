@@ -1,0 +1,94 @@
+{% extends "layout.html" %}
+{% block content %}
+<section class="navigation">
+    <img src="../static/img/logo.png" alt="Logo" class="logo">
+    <a href="home" class="button-white">Home</a>
+</section>
+
+<header>
+    <div class="header-container">
+        <h1>Music Compression</h1>
+        <p>A quick walkthrough through the models design. Upload your audio file to try it yourself:</p>
+        <form method="post" enctype="multipart/form-data">
+            <div>
+                <input type="file" id="file" name="file" accept="audio/wav" required />
+                <button class="button-green">Submit</button>
+            </div>
+
+        </form>
+    </div>
+</header>
+
+<section class="compression-card">
+    <div class="column">
+        <h3>1. Audio Input</h3>
+        <p>
+            The model operates on raw audio files which are preprocessed to a sample rate {{sr}} kHz and a lenght of
+            {{seconds}} seconds. Longer audio files are processed in batches.
+        </p>
+        {% if not (path / "input.wav").exists() %}
+        <p>
+            Try the model by uploading an audio file of your choice:
+        </p>
+        {% endif %}
+
+
+    </div>
+    <div class="column">
+        <h3>2. Compression</h3>
+        <p>
+            The model compresses the audio files of length {{sr*seconds}} into {{sr*seconds//compression_rate}} vectors
+            with 1D convolutions.
+        </p>
+
+
+    </div>
+    <div class="column">
+        <h3>3. Embeddings</h3>
+        <p>
+            During training, the model learns {{codebooks}} vectors which are used to represent the compressed audio
+            vectors. These vectors can serve as music embeddings (e.g. for music transformers) or one can sample form
+            these learned vectors to generate new audio.
+        </p>
+
+    </div>
+    <div class="column">
+        <h3>4. Decompression</h3>
+        <p>
+            Given a sequence of codebook vectors, the model can decode these vectors and return an audio wave which
+            (hopefully) resemples music.
+        </p>
+
+    </div>
+    <div class="column">
+        <h3>5. Audio Output</h3>
+        <p>
+            The returned music has the same shape as the original input and the model is trained to match the output to
+            the input.
+        </p>
+    </div>
+
+</section>
+
+
+
+{% if (path / "reconstructed.wav").exists() %}
+<div class="container">
+    <div class="player">
+        <div class="imgbox">
+            <img src="{{ url_for('static', filename='img/generate.png') }}" alt="AW" />
+        </div>
+        <audio src="{{ url_for('static', filename='audio/input.wav') }}" type="audio/wav" controls></audio>
+        <h1>Input Audio</h1>
+    </div>
+    <div class="player">
+        <div class="imgbox">
+            <img src="{{ url_for('static', filename='img/generate.png') }}" alt="AW" />
+        </div>
+        <audio src="{{ url_for('static', filename='audio/reconstructed.wav') }}" type="audio/wav" controls></audio>
+        <h1>Reconstructed Audio</h1>
+    </div>
+</div>
+
+{% endif %}
+{% endblock content %}

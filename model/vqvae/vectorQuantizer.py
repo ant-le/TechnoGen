@@ -92,6 +92,7 @@ class VectorQuantizer(nn.Module):
             out = self.postprocess(generated_vectors, (1, compress_lv))
         return out.clone().detach()
 
+    @torch.no_grad()
     def update_codebook(self, x: torch.Tensor, codebook_idxs: []):
         # get params for better readability
         weight = self.loss_weight

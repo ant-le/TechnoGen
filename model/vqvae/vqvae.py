@@ -58,10 +58,10 @@ class VQVAE(nn.Module):
     def __init__(
         self,
         input_shape,
-        layers: int = 7,
+        layers: int = 6,
         stride: int = 2,
         width: int = 128,
-        depth: int = 4,
+        depth: int = 3,
         codebook_dim: int = 64,
         codebook_size: int = 512,
         discard_vec_threshold: float = 0.8,
@@ -91,7 +91,7 @@ class VQVAE(nn.Module):
         print("--- Initiate VQ VAE model...")
 
         self.channels, self.input_size = input_shape
-        # assert self.input_size % (stride**layers) == 0
+        self.compression_level = self.input_size // (stride**layers)
 
         self.spectral_loss_weight = spectral_loss_weight
         self.commit_loss_weight = commit_loss_weight
@@ -162,10 +162,19 @@ class VQVAE(nn.Module):
 
         return out, loss, metrics
 
+    @torch.no_grad()
     def generate(self):
-        with torch.no_grad():
-            generated_vectors = self.quantizer.get_random_codebook_vetors(
-                self.input_size // 2**6
-            )
-            out = self.decoder(generated_vectors)
+        generated_vectors = self.quantizer.get_random_codebook_vetors(
+            self.compression_level
+        )
+
+        out = self.decoder(generated_vectors)
         return out
+
+    @torch.no_grad()
+    def decode(self, x):
+        return self.decoder(x)
+
+    @torch.no_grad()
+    def encode(self, x):
+        return self.encoder(x)

@@ -1,13 +1,37 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<div class="headerblock">
-    <div class="header">
-        <img src="{{ url_for('static', filename='img/logo.png') }}">
-        <h1>TechnoGen</h1>
+<header>
+    <div class="header-container">
+        <div class="logo">
+            <img src="{{ url_for('static', filename='img/logo.png') }}">
+            <h1>TechnoGen</h1>
+        </div>
+        <p>
+            An application for generating Techno music.
+            <br /> To see how it works, click <a href="compress">here</a>.
+        </p>
     </div>
-    <p>An application to compress and generate Techno music.</p>
-</div>
+</header>
+
+
+<index-body>
+    <div class="player">
+        <div class="menu">
+            <a href="generator" class="button-white">Generate</a>
+            {% if (path / "generated.wav").exists() %}
+            <a href="{{ url_for('static', filename='audio/generated.wav') }}" class="button-white"
+                download="audio_generated.wav">Download</a>
+            {% endif %}
+        </div>
+        {% if (path / "generated.wav").exists() %}
+        <div class="imgbox">
+            <img src="{{ url_for('static', filename='img/generate.png') }}" alt="AW" />
+        </div>
+        <audio src="{{ url_for('static', filename='audio/generated.wav') }}" type="audio/wav" controls></audio>
+        {% endif %}
+    </div>
+</index-body>
 {% endblock content %}
 
 

@@ -1,11 +1,10 @@
-from model.vqvae.vqvae import VQVAE
-
-from pathlib import PosixPath
-import torch
-
-import sys
+import torch, sys
 
 sys.path.append(".")
+
+from pathlib import PosixPath
+
+from model.vqvae.vqvae import VQVAE
 
 
 def make_model(config, device, optimizer: str = "adam", train: bool = True):

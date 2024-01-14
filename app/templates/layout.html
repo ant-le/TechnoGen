@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <meta charset="utf-8">
+    <meta charset="utf-8" name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Techno Gen</title>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
@@ -12,6 +12,20 @@
         {% block content %}
 
         {% endblock %}
+        <section class="footer">
+            <h3>About</h3>
+            <p>The model is still in development phase. For more information about the model, visit</p>
+            <!--  TODO: Add icons -->
+            <div class="icon-container">
+                <a href="mailto:lechuga.anton@gmail.com" class="icon-link">
+                    <img src="../static/img/gmail.svg" alt="Icon 1" class="icon">
+                </a>
+                <a href="https://github.com/ant-le/TechnoGen" class="icon-link">
+                    <img src="../static/img/github.svg" alt="Icon 2" class="icon">
+                </a>
+                <!-- Add more linked icons as needed -->
+            </div>
+        </section>
     </div>
 
 </body>

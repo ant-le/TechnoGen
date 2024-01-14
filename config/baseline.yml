@@ -12,7 +12,7 @@ dataset:
 training:
   name: 'baseline'
   epochs: 100
-  optimizer: 'adam'
+  optimizer: 'adam'‘
   lr: 0.0001
   early_stop: 20
   clipping_fac: 2

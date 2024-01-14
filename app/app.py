@@ -16,6 +16,8 @@ with open(f"config/{MODEL_VERSION}.yml", "r") as stream:
     except yaml.YAMLError as exc:
         print(exc)
 audio_path = Path.cwd() / "app" / "static" / "audio"
+audio_path.mkdir(exist_ok=True)
+
 config["dataset"]["path"] = audio_path
 
 

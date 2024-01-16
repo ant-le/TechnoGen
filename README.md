@@ -43,7 +43,13 @@ For running the training loop, run:
 python3 training/train.py --config config/<config_name>.yml
 ```
 
-## 2. Appraoch
+For running the training loop, run:
+
+```bash
+python3 app/app.py 
+```
+
+## 2. Approach
 
 My approach consists of two main stages, since I did not operate on an existing dataset. Hence, I first implemented a pipeline to process audio files for training a model, which will be explained in the last part of this section.
 
@@ -106,8 +112,8 @@ Hereby, the reconstruction loss is further divided into two terms assessing a on
 
 For the task at hand, my simple baseline had many problems with vanishing or exploding gradients barely getting under a validation set loss of $1$. Hence, my initial goal was set two-folded:
 
-  1. Quantitave Assesment: $L<0.25$
-  2. Qualitative Assesment: Reconstruction is subjectively close to input audio
+  1. Quantitative Assessment: $L<0.25$
+  2. Qualitative Assessment: Reconstruction is subjectively close to input audio
   3. *Bonus*: Generating something what can be considered sound from codebook vectors
 
 #### Results
@@ -134,7 +140,7 @@ Finally, for the qualitative assessments I placed a working example in `docs/wav
 
 - Optimizing data processing without storing intermediate data files
 - Increasing training data by sliding through data instead of creating independent splits
-- implementing attention layer as techno music has many reoccuring themes
+- implementing attention layer as techno music has many reoccurring themes
 - Running training on more stable environment compared to google collab
 - Spectrogram -> Mel-Spectrogram
 - **Optional**: Depending on success of VQVAE generation, implement simple transformer for generating sound based on codebook vectors

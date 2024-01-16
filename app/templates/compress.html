@@ -75,18 +75,24 @@
 {% if (path / "reconstructed.wav").exists() %}
 <div class="container">
     <div class="player">
-        <div class="imgbox">
-            <img src="{{ url_for('static', filename='img/generate.png') }}" alt="AW" />
+        <div class="menu">
+            <a href="{{ url_for('static', filename='audio/input.wav') }}" class="button-white"
+                download="input.wav">Download</a>
+        </div>
+        <div class="imgbox-sm">
+            <img src="{{ url_for('static', filename='img/input.png') }}" alt="AW" />
         </div>
         <audio src="{{ url_for('static', filename='audio/input.wav') }}" type="audio/wav" controls></audio>
-        <h1>Input Audio</h1>
     </div>
     <div class="player">
-        <div class="imgbox">
-            <img src="{{ url_for('static', filename='img/generate.png') }}" alt="AW" />
+        <div class="menu">
+            <a href="{{ url_for('static', filename='audio/reconstructed.wav') }}" class="button-white"
+                download="input.wav">Download</a>
+        </div>
+        <div class="imgbox-sm">
+            <img src="{{ url_for('static', filename='img/reconstructed.png') }}" alt="AW" />
         </div>
         <audio src="{{ url_for('static', filename='audio/reconstructed.wav') }}" type="audio/wav" controls></audio>
-        <h1>Reconstructed Audio</h1>
     </div>
 </div>
 

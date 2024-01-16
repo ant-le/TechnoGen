@@ -3,7 +3,7 @@ import torchaudio, torch, h5py, sys
 sys.path.append(".")
 
 
-from dataset.utils import resample, mix_down, split_by_time
+from dataset.utils import resample, mix_down, split_by_time, augment
 from training.utils import make_model
 
 # define used model and parameters here
@@ -48,8 +48,12 @@ def sample(config):
     model, config = get_model(config)
     out = model.generate()
     out = out.reshape(1, out.shape[2])
+    out = augment(out, sr=config["sample_rate"])
     torchaudio.save(
-        config["path"] / "generated.wav", out, config["sample_rate"], format="wav"
+        config["path"] / "generated.wav",
+        out,
+        config["sample_rate"],
+        format="wav",
     )
 
 

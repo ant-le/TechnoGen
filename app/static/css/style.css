@@ -31,22 +31,22 @@
 .footer h3 {
     margin-bottom: 10px;
     font-weight: 600;
-    font-size: 15px;
+    font-size: 20px;
 }
 
 .footer p {
-    font-size: 11px;
+    font-size: 13px;
 }
 
 
 /*-------  Header ------*/
 header {
-    padding-top: 50px;
+    padding-top: 80px;
 }
 
 .header-container {
     justify-content: center;
-    padding-bottom: 100px;
+    padding-bottom: 20px;
     text-align: center;
 }
 
@@ -57,22 +57,22 @@ header {
 }
 
 .header-container .logo img {
-    width: 80px;
-    height: 80px;
+    width: 100px;
+    height: 100px;
     cursor: pointer;
 }
 
 .header-container .logo h1 {
-    font-size: 50px;
+    font-size: 70px;
 }
 
 .header-container h1 {
-    font-size: 50px;
+    font-size: 70px;
 }
 
 .header-container p {
     padding-top: 20px;
-    font-size: 15px;
+    font-size: 18px;
 }
 
 
@@ -93,7 +93,7 @@ index-body {
 .navigation {
     width: 100%;
     text-align: center;
-    padding: 10px;
+    padding-top: 10px;
     box-sizing: border-box;
 }
 
@@ -111,6 +111,7 @@ index-body {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     grid-gap: 10px;
+    padding-bottom: 30px;
 }
 
 .compression-card .image-block {
@@ -207,12 +208,30 @@ input {
 
 .player h1 {
     text-align: center;
+    background-color: transparent;
 }
 
 .player .imgbox {
     position: relative;
     width: 100%;
     height: 450px;
+}
+
+.player .imgbox-sm {
+    position: relative;
+    width: 100%;
+    height: 180px;
+}
+
+.player .imgbox-sm img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
 }
 
 .player .imgbox img {

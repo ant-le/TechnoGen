@@ -9,7 +9,7 @@ from utils import encode, decode, sample, refresh
 
 app = Flask(__name__)
 
-MODEL_VERSION = "baseline_lrg"
+MODEL_VERSION = "baseline"
 with open(f"config/{MODEL_VERSION}.yml", "r") as stream:
     try:
         config = yaml.safe_load(stream)

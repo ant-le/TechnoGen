@@ -1,5 +1,6 @@
 dataset:
   offline_data_path: '/Users/anton/Documents/Music/'
+  online_data_path: = 'none'
   sample_rate: 44_000
   hop_size: 8
   verbose: true
@@ -12,13 +13,13 @@ dataset:
 training:
   name: 'baseline'
   epochs: 100
-  optimizer: 'adam'‘
+  optimizer: 'adam'
   lr: 0.0001
   early_stop: 20
   clipping_fac: 2
 
 model:
-  layers: 8
+  layers: 6
   stride: 2
   width: 128
   depth: 3

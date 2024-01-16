@@ -1,4 +1,5 @@
-import torchaudio, torch, tqdm, sys
+import torchaudio, torch, tqdm, sys, noisereduce
+
 
 sys.path.append(".")
 
@@ -40,3 +41,8 @@ def split_by_time(signal: torch.Tensor, k_seconds: int, same_rate: int):
         signal = torch.nn.functional.pad(signal, (0, num_samples - signal.shape[1]))
 
     return signal
+
+
+def augment(signal, sr):
+    signal = noisereduce.reduce_noise(y=signal.numpy(), sr=sr)
+    return torch.Tensor(signal)

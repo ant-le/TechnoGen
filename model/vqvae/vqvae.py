@@ -57,14 +57,14 @@ def get_spectral_loss(
 class VQVAE(nn.Module):
     def __init__(
         self,
-        input_shape,
+        input_shape=(1, 44_000 * 8),
         layers: int = 6,
         stride: int = 2,
         width: int = 128,
         depth: int = 3,
         codebook_dim: int = 64,
         codebook_size: int = 512,
-        discard_vec_threshold: float = 0.8,
+        discard_vec_threshold: float = 1.0,
         codebook_loss_weight: float = 0.8,
         spectral_loss_weight: float = 1.0,
         commit_loss_weight: float = 0.8,
@@ -173,7 +173,8 @@ class VQVAE(nn.Module):
 
     @torch.no_grad()
     def decode(self, x):
-        return self.decoder(x)
+        out = self.decoder(x)
+        return out.cpu()
 
     @torch.no_grad()
     def encode(self, x):

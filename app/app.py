@@ -16,9 +16,11 @@ with open(f"config/{MODEL_VERSION}.yml", "r") as stream:
     except yaml.YAMLError as exc:
         print(exc)
 audio_path = Path.cwd() / "app" / "static" / "audio"
+compression_rate = config["model"]["stride"] ** config["model"]["layers"]
+codebooks = config["model"]["codebook_size"]
+config = config["dataset"]
+config["path"] = audio_path
 audio_path.mkdir(exist_ok=True)
-
-config["dataset"]["path"] = audio_path
 
 
 @app.route("/")
@@ -37,10 +39,10 @@ def compress():
     return render_template(
         "compress.html",
         path=audio_path,
-        sr=config["dataset"]["sample_rate"],
-        seconds=config["dataset"]["hop_size"],
-        compression_rate=config["model"]["stride"] ** config["model"]["layers"],
-        codebooks=config["model"]["codebook_size"],
+        sr=config["sample_rate"],
+        seconds=config["hop_size"],
+        compression_rate=compression_rate,
+        codebooks=codebooks,
     )
 
 

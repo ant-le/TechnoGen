@@ -4,18 +4,33 @@ sys.path.append(".")
 
 
 from dataset.utils import resample, mix_down, split_by_time, augment
+from model.vqvae.vqvae import VQVAE
 from training.utils import make_model
 
 # define used model and parameters here
 
 
-def get_model(config):
-    model, _, _ = make_model(config, torch.device("cpu"), train=False)
-    return model, config["dataset"]
+def get_model():
+    model = VQVAE()
+    device = (
+        torch.device("cuda")
+        if torch.cuda.is_available()
+        else torch.device("mps")
+        if torch.backends.mps.is_available()
+        else torch.device("cpu")
+    )
+    model.to(device)
+    checkpoint = torch.hub.load_state_dict_from_url(
+        "https://github.com/ant-le/TechnoGen/releases/download/v1.0.0/baseline.pth",
+        map_location=device,
+    )
+    model.load_state_dict(checkpoint["model_state_dict"])
+
+    return model
 
 
 def encode(config):
-    model, config = get_model(config)
+    model = get_model()
     audio, sr = torchaudio.load(config["path"] / "input.wav")
     audio = resample(audio, sr, config["sample_rate"])
     audio = mix_down(audio)
@@ -27,11 +42,11 @@ def encode(config):
         config["path"] / "embedding.h5",
         "w",
     ) as f:
-        f.create_dataset("embedding", data=audio_encoded.numpy())
+        f.create_dataset("embedding", data=audio_encoded.cpu().numpy())
 
 
 def decode(config):
-    model, config = get_model(config)
+    model = get_model()
     with h5py.File(
         config["path"] / "embedding.h5",
         "r",
@@ -45,9 +60,9 @@ def decode(config):
 
 
 def sample(config):
-    model, config = get_model(config)
+    model = get_model()
     out = model.generate()
-    out = out.reshape(1, out.shape[2])
+    out = out.reshape(1, out.shape[2]).cpu()
     out = augment(out, sr=config["sample_rate"])
     torchaudio.save(
         config["path"] / "generated.wav",
@@ -59,5 +74,5 @@ def sample(config):
 
 def refresh(config):
     for name in ["embedding.h5", "input.wav", "reconstructed.wav"]:
-        file = config["dataset"]["path"] / name
+        file = config["path"] / name
         file.unlink(missing_ok=True)

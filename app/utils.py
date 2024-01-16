@@ -5,7 +5,6 @@ sys.path.append(".")
 
 from dataset.utils import resample, mix_down, split_by_time, augment
 from model.vqvae.vqvae import VQVAE
-from training.utils import make_model
 
 # define used model and parameters here
 
@@ -26,15 +25,16 @@ def get_model():
     )
     model.load_state_dict(checkpoint["model_state_dict"])
 
-    return model
+    return model, device
 
 
 def encode(config):
-    model = get_model()
+    model, device = get_model()
     audio, sr = torchaudio.load(config["path"] / "input.wav")
     audio = resample(audio, sr, config["sample_rate"])
     audio = mix_down(audio)
     audio_splits = split_by_time(audio, config["hop_size"], config["sample_rate"])
+    audio_splits = audio_splits.to(device)
     audio_splits = audio_splits.view(audio_splits.shape[0], 1, audio_splits.shape[1])
     audio_encoded = model.encode(audio_splits)
 
@@ -46,16 +46,19 @@ def encode(config):
 
 
 def decode(config):
-    model = get_model()
+    model, device = get_model()
     with h5py.File(
         config["path"] / "embedding.h5",
         "r",
     ) as f:
-        embedding = torch.Tensor(f["embedding"])
+        embedding = torch.Tensor(f["embedding"]).to(device)
     out = model.decode(embedding)
-    out = out.reshape(1, out.shape[0] * out.shape[2])
+    out = out.reshape(1, out.shape[0] * out.shape[2]).cpu()
     torchaudio.save(
-        config["path"] / "reconstructed.wav", out, config["sample_rate"], format="wav"
+        config["path"] / "reconstructed.wav",
+        out,
+        config["sample_rate"],
+        format="wav",
     )
 
 

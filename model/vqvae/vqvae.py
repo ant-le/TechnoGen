@@ -167,14 +167,12 @@ class VQVAE(nn.Module):
         generated_vectors = self.quantizer.get_random_codebook_vetors(
             self.compression_level
         )
-
         out = self.decoder(generated_vectors)
         return out
 
     @torch.no_grad()
     def decode(self, x):
-        out = self.decoder(x)
-        return out.cpu()
+        return self.decoder(x)
 
     @torch.no_grad()
     def encode(self, x):

@@ -63,7 +63,7 @@ def decode(config):
 
 
 def sample(config):
-    model = get_model()
+    model, device = get_model()
     out = model.generate()
     out = out.reshape(1, out.shape[2]).cpu()
     out = augment(out, sr=config["sample_rate"])

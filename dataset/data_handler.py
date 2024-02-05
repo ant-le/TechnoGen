@@ -1,13 +1,14 @@
-import h5py, torch
+import torch, torchaudio, sys
+
+sys.path.append(".")
+
+from pathlib import Path
+from dataset.utils import resample, mix_down
 from torch.utils.data import Dataset
-
-from pathlib import PosixPath
-
-from dataset.data_generator import generate_dataset_file
 
 
 class TechnoGenDataset(Dataset):
-    """Dataset Class nadling all audio files used to train
+    """Dataset Class handling all audio files used to train
     and evaluate the model. It operates on a HDF5 file format
     and generates lookup table for each song (splits) stored
     as an array. If a file with the desired data specifications
@@ -17,45 +18,48 @@ class TechnoGenDataset(Dataset):
     def __init__(self, config):
         super(TechnoGenDataset, self).__init__()
 
-        self.audio_lookup = {}
-        sample_rate = config["sample_rate"]
-        hop_size = config["hop_size"]
-        self.num_samples = sample_rate * hop_size
-        self.data_path = PosixPath(
-            "dataset", "data", f"techno_{self.num_samples}_{sample_rate}.h5"
-        )
-        # create a lookup table for quickly acessing samples
-        if not self.data_path.exists():
-            print(
-                f"--- Dataset does not exist for sample rate {sample_rate} and hop size {hop_size}. Creating the dataset now..."
-            )
-            generate_dataset_file(config)
-
-        try:
-            with h5py.File(self.data_path, "r") as f:  #
-                self.num_samples = list(f.keys())[0]
-                for idx in list(f[self.num_samples]):
-                    self.audio_lookup[idx] = int(f[self.num_samples][idx].shape[0])
-                    if int(idx) != 0:
-                        self.audio_lookup[idx] += list(self.audio_lookup.values())[-2]
-        except Exception as e:
-            print("--- Something went wrong when reading the data file!")
+        self.hop_size = config["hop_size"]
+        self.channels = config["channels"]
+        self.n_samples = config["n_samples"]
+        self.sample_rate = config["sample_rate"]
+        self._create_dataset(config)
 
     def __len__(self) -> int:
-        return list(self.audio_lookup.values())[-1]
+        return len(self.song_paths) * self.n_samples
 
     def __getitem__(self, index) -> torch.Tensor:
-        curr_count = 0
+        audio_wave = self._getTrack(index)
+        return self._getSample(index, audio_wave)
 
-        # find key corresponding to index in lookup table
-        for key, count in self.audio_lookup.items():
-            if index < count:
-                break
-            curr_count = count
-        lookup_idx = index - curr_count
-
-        # return the numpy array at index
-        with h5py.File(self.data_path, "r") as f:
-            audio_wave = f[self.num_samples][key][()]
-            signal = torch.from_numpy(audio_wave[lookup_idx, :])
+    def _getTrack(self, index):
+        track_number = index // self.n_samples
+        signal, sr = torchaudio.load(
+            self.song_paths[track_number]
+        )  # TODO: don't load full song?
+        signal = resample(signal, from_sr=sr, to_sr=self.sample_rate)
+        signal = mix_down(signal)
         return signal
+
+    def _getSample(self, index, signal):
+        split = signal.shape[1] // self.sample_rate // self.n_samples
+        idx = (split * (index % self.n_samples) + split // 3) * self.sample_rate
+        return signal[:, idx : idx + self.sample_rate * self.hop_size]
+
+    def _create_dataset(self, config):
+        self.song_paths = []
+        allowed_file_ext = ["wav"]
+        if config["all_filetypes"]:
+            allowed_file_ext.extend(["mp3", "flac", "mp4", "aac"])
+
+        for ext in allowed_file_ext:
+            self.song_paths.extend(
+                [
+                    str(song_file)
+                    for song_file in list(Path(config["path"]).rglob(f"*.{ext}"))
+                ]
+            )
+        assert len(self.song_paths) > 0
+
+        if config["limit"] is not None:
+            print(config["limit"])
+            self.song_paths = self.song_paths[: config["limit"]]

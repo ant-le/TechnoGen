@@ -1,4 +1,7 @@
-import torch
+import sys
+
+sys.path.append(".")
+
 from torch.utils.data import Dataset, DataLoader
 from dataset.data_handler import TechnoGenDataset
 
@@ -7,7 +10,7 @@ class HelperDataset(Dataset):
     """helper Module used train-valid-test splits."""
 
     def __init__(self, dataset, start, end):
-        super().__init__()
+        super(HelperDataset).__init__()
         self.dataset = dataset
         self.start = start
         self.end = end
@@ -34,8 +37,19 @@ class DataProcessor:
 
     def _create_datasets(self, config):
         assert sum(config["split"]) == 1
-        train_len = int(len(self.dataset) * config["split"][0])
-        valid_len = int(len(self.dataset) * (config["split"][0] + config["split"][1]))
+        train_len = (
+            int(len(self.dataset) // config["n_samples"] * config["split"][0])
+            * config["n_samples"]
+        )
+        valid_len = (
+            int(
+                len(self.dataset)
+                // config["n_samples"]
+                * (config["split"][0] + config["split"][1])
+            )
+            * config["n_samples"]
+        )
+
         self.train_dataset = HelperDataset(self.dataset, 0, train_len)
         self.valid_dataset = HelperDataset(self.dataset, train_len, valid_len)
         self.test_dataset = HelperDataset(self.dataset, valid_len, len(self.dataset))
@@ -46,19 +60,19 @@ class DataProcessor:
             self.train_dataset,
             batch_size=config["batch_size"],
             shuffle=config["shuffle"],
-            num_workers=8,
+            num_workers=4,
         )
         self.valid_loader = DataLoader(
             self.test_dataset,
             batch_size=config["batch_size"],
             shuffle=config["shuffle"],
-            num_workers=8,
+            num_workers=4,
         )
         self.test_loader = DataLoader(
             self.test_dataset,
             batch_size=config["batch_size"],
             shuffle=config["shuffle"],
-            num_workers=8,
+            num_workers=4,
         )
 
     def _print_stats(self):

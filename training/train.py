@@ -69,7 +69,7 @@ def run_epochs(config, save_checkpoints: bool = True):
     wandb.login()
     wandb.init(
         config=config["training"],
-        project=f"TechnoGen",
+        project=f"TechnoGenV2",
         id=config["training"]["name"],
         resume="allow",
     )
@@ -86,9 +86,11 @@ def run_epochs(config, save_checkpoints: bool = True):
     device = (
         torch.device("cuda")
         if torch.cuda.is_available()
-        else torch.device("mps")
-        if torch.backends.mps.is_available()
-        else torch.device("cpu")
+        else (
+            torch.device("mps")
+            if torch.backends.mps.is_available()
+            else torch.device("cpu")
+        )
     )
     print("--- Model runs on device: {}".format(device.type))
 

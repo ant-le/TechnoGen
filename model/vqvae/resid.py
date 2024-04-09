@@ -1,4 +1,7 @@
 import torch.nn as nn
+import sys
+
+sys.path.append(".")
 
 
 class ResBlock1D(nn.Module):

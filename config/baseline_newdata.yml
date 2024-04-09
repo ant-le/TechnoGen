@@ -1,22 +1,24 @@
 dataset:
-  offline_data_path: '/Users/anton/Documents/Music/'
-  online_data_path: = 'none'
+  path: '/Users/anton/Documents/Music/'
+  all_filetypes: true
   sample_rate: 44_000
+  n_samples: 5
   hop_size: 8
-  verbose: true
   channels: 1
   split: [.8, .1, .1]
-  batch_size: 8
+  batch_size: 16
+  workers: 2
   shuffle: true
-  limit: None
+  limit: null
 
 training:
-  name: 'baseline'
+  name: 'baseline_newdata'
   epochs: 100
   optimizer: 'adam'
   lr: 0.0001
   early_stop: 20
   clipping_fac: 2
+  batch_size: 8
 
 model:
   layers: 6

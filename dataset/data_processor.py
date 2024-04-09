@@ -36,18 +36,19 @@ class DataProcessor:
         self._print_stats()
 
     def _create_datasets(self, config):
+        self.n_samples = config["n_samples"]
         assert sum(config["split"]) == 1
         train_len = (
-            int(len(self.dataset) // config["n_samples"] * config["split"][0])
-            * config["n_samples"]
+            int(len(self.dataset) // self.n_samples * config["split"][0])
+            * self.n_samples
         )
         valid_len = (
             int(
                 len(self.dataset)
-                // config["n_samples"]
+                // self.n_samples
                 * (config["split"][0] + config["split"][1])
             )
-            * config["n_samples"]
+            * self.n_samples
         )
 
         self.train_dataset = HelperDataset(self.dataset, 0, train_len)
@@ -60,22 +61,25 @@ class DataProcessor:
             self.train_dataset,
             batch_size=config["batch_size"],
             shuffle=config["shuffle"],
-            num_workers=4,
+            num_workers=config["workers"],
         )
         self.valid_loader = DataLoader(
             self.test_dataset,
             batch_size=config["batch_size"],
             shuffle=config["shuffle"],
-            num_workers=4,
+            num_workers=config["workers"],
         )
         self.test_loader = DataLoader(
             self.test_dataset,
             batch_size=config["batch_size"],
             shuffle=config["shuffle"],
-            num_workers=4,
+            num_workers=config["workers"],
         )
 
     def _print_stats(self):
         print(
-            f"--- Data Loader created with sizes: Train {len(self.train_dataset)} samples. Valid {len(self.valid_dataset)} samples. Test {len(self.test_dataset)} samples"
+            f"--- Data Loader created with a total of {len(self.dataset) // self.n_samples} tracks."
+        )
+        print(
+            f"--- Data Loader created with sizes: Train {len(self.train_dataset)} samples. Valid {len(self.valid_dataset)} samples. Test {len(self.test_dataset)} samples."
         )

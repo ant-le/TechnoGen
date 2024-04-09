@@ -1,4 +1,7 @@
 from torch import nn
+import sys
+
+sys.path.append(".")
 
 
 class LSTMBlock1D(nn.Module):

@@ -1,8 +1,8 @@
-import torch
 import torch.nn as nn
 from torch.nn import functional as F
+import torch, sys, math
 
-import math
+sys.path.append(".")
 
 
 class MultiHeadAttention(nn.Module):
@@ -15,7 +15,7 @@ class MultiHeadAttention(nn.Module):
 
         # key, query, value projections for all heads in a batch
         self.c_attn = nn.Linear(dimension, 3 * dimension, bias=bias)
-
+        self.anton = 2
         self.n_head = n_head
         self.dimension = dimension
         self.project = project

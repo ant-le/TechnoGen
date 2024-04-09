@@ -1,44 +1,11 @@
 import numpy as np
-import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import torch, sys
 
-from einops import rearrange, repeat
+sys.path.append(".")
 
-
-def kmeans(x, codebook_size: int, num_iters: int = 10):
-    print("--- Initialising codebook with k-means: May take some time...")
-    # code was adapted from and slightly modified from
-    # https://github.com/facebookresearch/encodec/blob/main/encodec/quantization/core_vq.py
-    # (BT, E)
-    BT, E = x.shape
-    dtype = x.dtype
-
-    # radnomly sample E initial vectors
-    if BT >= codebook_size:
-        indices = torch.randperm(BT, device=x.device)[:codebook_size]
-    else:
-        indices = torch.randint(0, BT, (codebook_size,), device=x.device)
-    # (E_bins, E)
-    means = x[indices]
-
-    # iteratively find cluster centers
-    for _ in range(num_iters):
-        diffs = rearrange(x, "n d -> n () d") - rearrange(means, "c d -> () c d")
-        dists = -(diffs**2).sum(dim=-1)
-
-        buckets = dists.max(dim=-1).indices
-        bins = torch.bincount(buckets, minlength=codebook_size)
-        zero_mask = bins == 0
-        bins_min_clamped = bins.masked_fill(zero_mask, 1)
-
-        new_means = buckets.new_zeros(codebook_size, E, dtype=dtype)
-        new_means.scatter_add_(0, repeat(buckets, "n -> n d", d=E), x)
-        new_means = new_means / bins_min_clamped[..., None]
-
-        means = torch.where(zero_mask[..., None], means, new_means)
-
-    return means
+from model.utils import kmeans
 
 
 class VectorQuantizer(nn.Module):
@@ -100,64 +67,62 @@ class VectorQuantizer(nn.Module):
         cb_dim = self.codebook_dim
         threshold = self.discard_vec_threshold
 
-        # we do not backpropagate through quantiser
-        with torch.no_grad():
-            # create representation of codebook vectors over input (CB_size, BT)
-            codebook_idxs_onehot = torch.zeros(
-                self.codebook_size, x.shape[0], device=x.device
+        # create representation of codebook vectors over input (CB_size, BT)
+        codebook_idxs_onehot = torch.zeros(
+            self.codebook_size, x.shape[0], device=x.device
+        )
+        # (CB_size, BT) and (1,BT) -> (CB_size, BT) with onehot codebook vectors
+        codebook_idxs_onehot.scatter_(0, codebook_idxs.view(1, x.shape[0]), 1)
+
+        # (CB_size, BT) * (BT, E) -> (CB_size, E) -> (CB_size, 1)
+        # count information for each codebook vector over
+        # codebook dimensions and count for each vector
+        codebook_avg = torch.matmul(codebook_idxs_onehot, x)
+        vector_usage = codebook_idxs_onehot.sum(dim=-1)
+
+        # update codebook instances
+        old_codebook = self.codebook
+        # information about vector quality (CB_size, E)
+        self.codebook_avg = weight * self.codebook_avg + (1 - weight) * codebook_avg
+
+        # information about vector usage (CB_size, 1)
+        self.vector_usage = weight * self.vector_usage + (1 - weight) * vector_usage
+
+        # check if usage of certain codebook vectors is beyond threshold
+        # in last iteration (false -> 0. & true -> 1.)
+        usage = (self.vector_usage.view(cb_size, 1) >= threshold).float()
+
+        random_shift = x[torch.randperm(x.shape[0])][:cb_size]
+
+        # update vectors according and change unimportant vecotors randomly
+        self.codebook = (
+            usage
+            * (
+                self.codebook_avg.view(cb_size, cb_dim)
+                / self.vector_usage.view(cb_size, 1)
             )
-            # (CB_size, BT) and (1,BT) -> (CB_size, BT) with onehot codebook vectors
-            codebook_idxs_onehot.scatter_(0, codebook_idxs.view(1, x.shape[0]), 1)
+            + (1 - usage) * random_shift
+        )
 
-            # (CB_size, BT) * (BT, E) -> (CB_size, E) -> (CB_size, 1)
-            # count information for each codebook vector over
-            # codebook dimensions and count for each vector
-            codebook_avg = torch.matmul(codebook_idxs_onehot, x)
-            vector_usage = codebook_idxs_onehot.sum(dim=-1)
-
-            # update codebook instances
-            old_codebook = self.codebook
-            # information about vector quality (CB_size, E)
-            self.codebook_avg = weight * self.codebook_avg + (1 - weight) * codebook_avg
-
-            # information about vector usage (CB_size, 1)
-            self.vector_usage = weight * self.vector_usage + (1 - weight) * vector_usage
-
-            # check if usage of certain codebook vectors is beyond threshold
-            # in last iteration (false -> 0. & true -> 1.)
-            usage = (self.vector_usage.view(cb_size, 1) >= threshold).float()
-
-            random_shift = x[torch.randperm(x.shape[0])][:cb_size]
-
-            # update vectors according and change unimportant vecotors randomly
-            self.codebook = (
-                usage
-                * (
-                    self.codebook_avg.view(cb_size, cb_dim)
-                    / self.vector_usage.view(cb_size, 1)
-                )
-                + (1 - usage) * random_shift
-            )
-
-            # calculate codebook evaluations
-            vector_prob = vector_usage / torch.sum(vector_usage)
-            # asses variablity in vector selection
-            entropy = -torch.sum(vector_prob * torch.log(vector_prob + 1e-8))
-            # number of used vecs in current iteration
-            usage_curr = (vector_usage >= threshold).sum()
-            # number if used vecs of last iterations
-            usage_last = torch.sum(usage)
-            #
-            codebook_diff = torch.norm(self.codebook - old_codebook) / np.sqrt(
-                np.prod(old_codebook.shape)
-            )
-            return dict(
-                vector_prob=vector_prob,
-                entropy=entropy,
-                usage_curr=usage_curr,
-                usage_last=usage_last,
-                codebook_diff=codebook_diff,
-            )
+        # calculate codebook evaluations
+        vector_prob = vector_usage / torch.sum(vector_usage)
+        # asses variablity in vector selection
+        entropy = -torch.sum(vector_prob * torch.log(vector_prob + 1e-8))
+        # number of used vecs in current iteration
+        usage_curr = (vector_usage >= threshold).sum()
+        # number if used vecs of last iterations
+        usage_last = torch.sum(usage)
+        #
+        codebook_diff = torch.norm(self.codebook - old_codebook) / np.sqrt(
+            np.prod(old_codebook.shape)
+        )
+        return dict(
+            vector_prob=vector_prob,
+            entropy=entropy,
+            usage_curr=usage_curr,
+            usage_last=usage_last,
+            codebook_diff=codebook_diff,
+        )
 
     def preprocess(self, x):
         # (B,E,T) -> (B,T,E)

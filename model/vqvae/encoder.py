@@ -1,3 +1,7 @@
+import sys
+
+sys.path.append(".")
+
 import torch.nn as nn
 
 from model.vqvae.resid import ResBlock1D

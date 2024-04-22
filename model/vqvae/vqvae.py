@@ -1,4 +1,4 @@
-import torch.nn as nn
+    import torch.nn as nn
 import torch.nn.functional as F
 import torch, sys
 
@@ -77,6 +77,7 @@ class VQVAE(nn.Module):
         )
 
     def forward(self, x):
+        # store resulting metrics in dict
         metrics = {}
 
         # Encode (B,C,T) -> (B,E,t)
